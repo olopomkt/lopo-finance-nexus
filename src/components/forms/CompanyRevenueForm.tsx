@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,12 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, TrendingUp } from 'lucide-react';
+import { CalendarIcon, TrendingUp, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { CompanyRevenue, PaymentMethod, ContractType } from '@/types';
-import { storageService } from '@/lib/storage';
+import { useFormValidation } from '@/hooks/useFormValidation';
+import { useFinanceData } from '@/hooks/useFinanceData';
+import { companyRevenueSchema } from '@/lib/validations';
 import { toast } from '@/hooks/use-toast';
 
 interface Props {
@@ -22,7 +24,7 @@ interface Props {
   onCancel: () => void;
 }
 
-export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
+export const CompanyRevenueForm = memo(({ revenue, onSave, onCancel }: Props) => {
   const [formData, setFormData] = useState({
     clientName: revenue?.clientName || '',
     service: revenue?.service || '',
@@ -33,27 +35,38 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
     paymentDate: revenue?.paymentDate || new Date()
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.clientName || !formData.service || formData.price <= 0) {
-      toast({ title: "Erro", description: "Preencha todos os campos obrigatórios", variant: "destructive" });
-      return;
-    }
+  const { saveRevenue, updateRevenue, isLoading } = useFinanceData();
 
+  const handleSuccess = useCallback(async (validatedData: typeof formData) => {
     try {
       if (revenue) {
-        storageService.updateCompanyRevenue(revenue.id, formData);
+        await updateRevenue(revenue.id, validatedData);
         toast({ title: "Sucesso", description: "Receita atualizada com sucesso!" });
       } else {
-        storageService.saveCompanyRevenue(formData);
+        await saveRevenue(validatedData);
         toast({ title: "Sucesso", description: "Receita cadastrada com sucesso!" });
       }
       onSave();
     } catch (error) {
       toast({ title: "Erro", description: "Erro ao salvar receita", variant: "destructive" });
     }
-  };
+  }, [revenue, saveRevenue, updateRevenue, onSave]);
+
+  const { validate, getFieldError, isValidating } = useFormValidation({
+    schema: companyRevenueSchema,
+    onSuccess: handleSuccess
+  });
+
+  const handleSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    validate(formData);
+  }, [formData, validate]);
+
+  const updateField = useCallback((field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const isProcessing = isLoading || isValidating;
 
   return (
     <motion.div
@@ -76,10 +89,17 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
                 <Input
                   id="clientName"
                   value={formData.clientName}
-                  onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                  className="bg-background/50 border-muted focus:border-neon-blue"
+                  onChange={(e) => updateField('clientName', e.target.value)}
+                  className={cn(
+                    "bg-background/50 border-muted focus:border-neon-blue",
+                    getFieldError('clientName') && "border-red-500"
+                  )}
                   placeholder="Digite o nome do cliente"
+                  disabled={isProcessing}
                 />
+                {getFieldError('clientName') && (
+                  <p className="text-sm text-red-500">{getFieldError('clientName')}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -87,10 +107,17 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
                 <Input
                   id="service"
                   value={formData.service}
-                  onChange={(e) => setFormData({ ...formData, service: e.target.value })}
-                  className="bg-background/50 border-muted focus:border-neon-blue"
+                  onChange={(e) => updateField('service', e.target.value)}
+                  className={cn(
+                    "bg-background/50 border-muted focus:border-neon-blue",
+                    getFieldError('service') && "border-red-500"
+                  )}
                   placeholder="Descreva o serviço"
+                  disabled={isProcessing}
                 />
+                {getFieldError('service') && (
+                  <p className="text-sm text-red-500">{getFieldError('service')}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -101,15 +128,26 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
                   step="0.01"
                   min="0"
                   value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                  className="bg-background/50 border-muted focus:border-neon-blue"
+                  onChange={(e) => updateField('price', parseFloat(e.target.value) || 0)}
+                  className={cn(
+                    "bg-background/50 border-muted focus:border-neon-blue",
+                    getFieldError('price') && "border-red-500"
+                  )}
                   placeholder="0.00"
+                  disabled={isProcessing}
                 />
+                {getFieldError('price') && (
+                  <p className="text-sm text-red-500">{getFieldError('price')}</p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label>Forma de Pagamento</Label>
-                <Select value={formData.paymentMethod} onValueChange={(value: PaymentMethod) => setFormData({ ...formData, paymentMethod: value })}>
+                <Select 
+                  value={formData.paymentMethod} 
+                  onValueChange={(value: PaymentMethod) => updateField('paymentMethod', value)}
+                  disabled={isProcessing}
+                >
                   <SelectTrigger className="bg-background/50 border-muted">
                     <SelectValue />
                   </SelectTrigger>
@@ -123,7 +161,11 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
 
               <div className="space-y-2">
                 <Label>Tipo de Contrato</Label>
-                <Select value={formData.contractType} onValueChange={(value: ContractType) => setFormData({ ...formData, contractType: value })}>
+                <Select 
+                  value={formData.contractType} 
+                  onValueChange={(value: ContractType) => updateField('contractType', value)}
+                  disabled={isProcessing}
+                >
                   <SelectTrigger className="bg-background/50 border-muted">
                     <SelectValue />
                   </SelectTrigger>
@@ -141,10 +183,18 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
                     id="contractMonths"
                     type="number"
                     min="1"
+                    max="120"
                     value={formData.contractMonths}
-                    onChange={(e) => setFormData({ ...formData, contractMonths: parseInt(e.target.value) || 1 })}
-                    className="bg-background/50 border-muted focus:border-neon-blue"
+                    onChange={(e) => updateField('contractMonths', parseInt(e.target.value) || 1)}
+                    className={cn(
+                      "bg-background/50 border-muted focus:border-neon-blue",
+                      getFieldError('contractMonths') && "border-red-500"
+                    )}
+                    disabled={isProcessing}
                   />
+                  {getFieldError('contractMonths') && (
+                    <p className="text-sm text-red-500">{getFieldError('contractMonths')}</p>
+                  )}
                 </div>
               )}
 
@@ -156,8 +206,10 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal bg-background/50 border-muted hover:border-neon-blue",
-                        !formData.paymentDate && "text-muted-foreground"
+                        !formData.paymentDate && "text-muted-foreground",
+                        getFieldError('paymentDate') && "border-red-500"
                       )}
+                      disabled={isProcessing}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formData.paymentDate ? format(formData.paymentDate, "PPP", { locale: ptBR }) : "Selecione uma data"}
@@ -167,12 +219,15 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
                     <Calendar
                       mode="single"
                       selected={formData.paymentDate}
-                      onSelect={(date) => date && setFormData({ ...formData, paymentDate: date })}
+                      onSelect={(date) => date && updateField('paymentDate', date)}
                       initialFocus
                       className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
+                {getFieldError('paymentDate') && (
+                  <p className="text-sm text-red-500">{getFieldError('paymentDate')}</p>
+                )}
               </div>
             </div>
 
@@ -180,7 +235,9 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
               <Button
                 type="submit"
                 className="flex-1 bg-gradient-to-r from-neon-blue to-neon-purple hover:from-neon-blue/80 hover:to-neon-purple/80 text-white"
+                disabled={isProcessing}
               >
+                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {revenue ? 'Atualizar' : 'Salvar'} Receita
               </Button>
               <Button
@@ -188,6 +245,7 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
                 variant="outline"
                 onClick={onCancel}
                 className="border-muted hover:border-red-500 hover:text-red-500"
+                disabled={isProcessing}
               >
                 Cancelar
               </Button>
@@ -197,4 +255,6 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
       </Card>
     </motion.div>
   );
-};
+});
+
+CompanyRevenueForm.displayName = 'CompanyRevenueForm';
