@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,9 @@ import { Edit, Trash2, Building2, User, TrendingUp, TrendingDown } from 'lucide-
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
-import { storageService } from '@/lib/storage';
+import { useFinanceData } from '@/hooks/useFinanceData';
+import { useFilters } from '@/hooks/useFilters';
+import { FilterBar } from '@/components/filters/FilterBar';
 import { toast } from '@/hooks/use-toast';
 
 interface Props {
@@ -18,37 +19,66 @@ interface Props {
 }
 
 export const TransactionList = ({ onEditRevenue, onEditCompanyExpense, onEditPersonalExpense }: Props) => {
-  const [revenues, setRevenues] = useState<CompanyRevenue[]>(storageService.getCompanyRevenues());
-  const [companyExpenses, setCompanyExpenses] = useState<CompanyExpense[]>(storageService.getCompanyExpenses());
-  const [personalExpenses, setPersonalExpenses] = useState<PersonalExpense[]>(storageService.getPersonalExpenses());
+  const { 
+    companyRevenues, 
+    companyExpenses, 
+    personalExpenses,
+    deleteRevenue,
+    deleteCompanyExpense,
+    deletePersonalExpense 
+  } = useFinanceData();
 
-  const refreshData = () => {
-    setRevenues(storageService.getCompanyRevenues());
-    setCompanyExpenses(storageService.getCompanyExpenses());
-    setPersonalExpenses(storageService.getPersonalExpenses());
-  };
+  const {
+    filters,
+    updateFilter,
+    clearFilters,
+    filterRevenues,
+    filterCompanyExpenses,
+    filterPersonalExpenses
+  } = useFilters();
 
-  const deleteRevenue = (id: string) => {
+  const handleDeleteRevenue = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta receita?')) {
-      storageService.deleteCompanyRevenue(id);
-      refreshData();
-      toast({ title: "Sucesso", description: "Receita excluída com sucesso!" });
+      try {
+        deleteRevenue(id);
+        toast({ title: "Sucesso", description: "Receita excluída com sucesso!" });
+      } catch (error) {
+        toast({ 
+          title: "Erro", 
+          description: "Erro ao excluir receita", 
+          variant: "destructive" 
+        });
+      }
     }
   };
 
-  const deleteCompanyExpense = (id: string) => {
+  const handleDeleteCompanyExpense = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta despesa?')) {
-      storageService.deleteCompanyExpense(id);
-      refreshData();
-      toast({ title: "Sucesso", description: "Despesa excluída com sucesso!" });
+      try {
+        deleteCompanyExpense(id);
+        toast({ title: "Sucesso", description: "Despesa excluída com sucesso!" });
+      } catch (error) {
+        toast({ 
+          title: "Erro", 
+          description: "Erro ao excluir despesa", 
+          variant: "destructive" 
+        });
+      }
     }
   };
 
-  const deletePersonalExpense = (id: string) => {
+  const handleDeletePersonalExpense = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta conta?')) {
-      storageService.deletePersonalExpense(id);
-      refreshData();
-      toast({ title: "Sucesso", description: "Conta excluída com sucesso!" });
+      try {
+        deletePersonalExpense(id);
+        toast({ title: "Sucesso", description: "Conta excluída com sucesso!" });
+      } catch (error) {
+        toast({ 
+          title: "Erro", 
+          description: "Erro ao excluir conta", 
+          variant: "destructive" 
+        });
+      }
     }
   };
 
@@ -56,189 +86,218 @@ export const TransactionList = ({ onEditRevenue, onEditCompanyExpense, onEditPer
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
+  // Apply filters
+  const filteredRevenues = filterRevenues(companyRevenues);
+  const filteredCompanyExpenses = filterCompanyExpenses(companyExpenses);
+  const filteredPersonalExpenses = filterPersonalExpenses(personalExpenses);
+
   return (
-    <div className="space-y-8">
-      {/* Company Revenues */}
-      <Card className="neon-border bg-card/50 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-neon-blue">
-            <Building2 className="h-5 w-5" />
-            <TrendingUp className="h-5 w-5" />
-            Receitas Empresariais ({revenues.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AnimatePresence>
-            {revenues.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">Nenhuma receita cadastrada</p>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {revenues.map((revenue) => (
-                  <motion.div
-                    key={revenue.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="glass-effect p-4 rounded-lg border border-neon-blue/20 hover:border-neon-blue/40 transition-colors"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-start justify-between">
-                        <h4 className="font-semibold text-sm">{revenue.clientName}</h4>
-                        <Badge variant="outline" className="text-neon-blue border-neon-blue/50">
-                          {revenue.contractType}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{revenue.service}</p>
-                      <p className="text-lg font-bold text-neon-blue">{formatCurrency(revenue.price)}</p>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{revenue.paymentMethod}</span>
-                        <span>{format(revenue.paymentDate, 'dd/MM/yyyy', { locale: ptBR })}</span>
-                      </div>
-                      <div className="flex gap-2 pt-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onEditRevenue(revenue)}
-                          className="h-8 w-8 p-0 hover:bg-neon-blue/20"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => deleteRevenue(revenue.id)}
-                          className="h-8 w-8 p-0 hover:bg-red-500/20 hover:text-red-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </AnimatePresence>
-        </CardContent>
-      </Card>
+    <div className="space-y-6">
+      {/* Filter Bar */}
+      <FilterBar
+        filters={filters}
+        onFilterChange={updateFilter}
+        onClearFilters={clearFilters}
+      />
 
-      {/* Company Expenses */}
-      <Card className="neon-border bg-card/50 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-400">
-            <Building2 className="h-5 w-5" />
-            <TrendingDown className="h-5 w-5" />
-            Despesas Empresariais ({companyExpenses.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AnimatePresence>
-            {companyExpenses.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">Nenhuma despesa cadastrada</p>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {companyExpenses.map((expense) => (
-                  <motion.div
-                    key={expense.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="glass-effect p-4 rounded-lg border border-red-400/20 hover:border-red-400/40 transition-colors"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-start justify-between">
+      <div className="space-y-8">
+        {/* Company Revenues */}
+        <Card className="neon-border bg-card/50 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-neon-blue">
+              <Building2 className="h-5 w-5" />
+              <TrendingUp className="h-5 w-5" />
+              Receitas Empresariais ({filteredRevenues.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AnimatePresence>
+              {filteredRevenues.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  {filters.searchTerm || filters.dateFrom || filters.dateTo || filters.paymentMethod 
+                    ? 'Nenhuma receita encontrada com os filtros aplicados' 
+                    : 'Nenhuma receita cadastrada'
+                  }
+                </p>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredRevenues.map((revenue) => (
+                    <motion.div
+                      key={revenue.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="glass-effect p-4 rounded-lg border border-neon-blue/20 hover:border-neon-blue/40 transition-colors"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between">
+                          <h4 className="font-semibold text-sm">{revenue.clientName}</h4>
+                          <Badge variant="outline" className="text-neon-blue border-neon-blue/50">
+                            {revenue.contractType}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{revenue.service}</p>
+                        <p className="text-lg font-bold text-neon-blue">{formatCurrency(revenue.price)}</p>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{revenue.paymentMethod}</span>
+                          <span>{format(revenue.paymentDate, 'dd/MM/yyyy', { locale: ptBR })}</span>
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => onEditRevenue(revenue)}
+                            className="h-8 w-8 p-0 hover:bg-neon-blue/20"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteRevenue(revenue.id)}
+                            className="h-8 w-8 p-0 hover:bg-red-500/20 hover:text-red-500"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+
+        {/* Company Expenses */}
+        <Card className="neon-border bg-card/50 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-400">
+              <Building2 className="h-5 w-5" />
+              <TrendingDown className="h-5 w-5" />
+              Despesas Empresariais ({filteredCompanyExpenses.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AnimatePresence>
+              {filteredCompanyExpenses.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  {filters.searchTerm || filters.dateFrom || filters.dateTo || filters.paymentMethod 
+                    ? 'Nenhuma despesa encontrada com os filtros aplicados' 
+                    : 'Nenhuma despesa cadastrada'
+                  }
+                </p>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredCompanyExpenses.map((expense) => (
+                    <motion.div
+                      key={expense.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="glass-effect p-4 rounded-lg border border-red-400/20 hover:border-red-400/40 transition-colors"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between">
+                          <h4 className="font-semibold text-sm">{expense.name}</h4>
+                          <Badge variant="outline" className="text-red-400 border-red-400/50">
+                            {expense.type}
+                          </Badge>
+                        </div>
+                        <p className="text-lg font-bold text-red-400">{formatCurrency(expense.price)}</p>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{expense.paymentMethod}</span>
+                          <span>{format(expense.paymentDate, 'dd/MM/yyyy', { locale: ptBR })}</span>
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => onEditCompanyExpense(expense)}
+                            className="h-8 w-8 p-0 hover:bg-red-400/20"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteCompanyExpense(expense.id)}
+                            className="h-8 w-8 p-0 hover:bg-red-500/20 hover:text-red-500"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+
+        {/* Personal Expenses */}
+        <Card className="neon-border bg-card/50 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-neon-purple">
+              <User className="h-5 w-5" />
+              <TrendingDown className="h-5 w-5" />
+              Contas Pessoais ({filteredPersonalExpenses.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AnimatePresence>
+              {filteredPersonalExpenses.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  {filters.searchTerm || filters.dateFrom || filters.dateTo 
+                    ? 'Nenhuma conta encontrada com os filtros aplicados' 
+                    : 'Nenhuma conta cadastrada'
+                  }
+                </p>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredPersonalExpenses.map((expense) => (
+                    <motion.div
+                      key={expense.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="glass-effect p-4 rounded-lg border border-neon-purple/20 hover:border-neon-purple/40 transition-colors"
+                    >
+                      <div className="space-y-2">
                         <h4 className="font-semibold text-sm">{expense.name}</h4>
-                        <Badge variant="outline" className="text-red-400 border-red-400/50">
-                          {expense.type}
-                        </Badge>
+                        <p className="text-lg font-bold text-neon-purple">{formatCurrency(expense.price)}</p>
+                        <p className="text-xs text-muted-foreground">{format(expense.paymentDate, 'dd/MM/yyyy', { locale: ptBR })}</p>
+                        {expense.observation && (
+                          <p className="text-xs text-muted-foreground italic">{expense.observation}</p>
+                        )}
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => onEditPersonalExpense(expense)}
+                            className="h-8 w-8 p-0 hover:bg-neon-purple/20"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeletePersonalExpense(expense.id)}
+                            className="h-8 w-8 p-0 hover:bg-red-500/20 hover:text-red-500"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <p className="text-lg font-bold text-red-400">{formatCurrency(expense.price)}</p>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{expense.paymentMethod}</span>
-                        <span>{format(expense.paymentDate, 'dd/MM/yyyy', { locale: ptBR })}</span>
-                      </div>
-                      <div className="flex gap-2 pt-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onEditCompanyExpense(expense)}
-                          className="h-8 w-8 p-0 hover:bg-red-400/20"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => deleteCompanyExpense(expense.id)}
-                          className="h-8 w-8 p-0 hover:bg-red-500/20 hover:text-red-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </AnimatePresence>
-        </CardContent>
-      </Card>
-
-      {/* Personal Expenses */}
-      <Card className="neon-border bg-card/50 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-neon-purple">
-            <User className="h-5 w-5" />
-            <TrendingDown className="h-5 w-5" />
-            Contas Pessoais ({personalExpenses.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AnimatePresence>
-            {personalExpenses.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">Nenhuma conta cadastrada</p>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {personalExpenses.map((expense) => (
-                  <motion.div
-                    key={expense.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="glass-effect p-4 rounded-lg border border-neon-purple/20 hover:border-neon-purple/40 transition-colors"
-                  >
-                    <div className="space-y-2">
-                      <h4 className="font-semibold text-sm">{expense.name}</h4>
-                      <p className="text-lg font-bold text-neon-purple">{formatCurrency(expense.price)}</p>
-                      <p className="text-xs text-muted-foreground">{format(expense.paymentDate, 'dd/MM/yyyy', { locale: ptBR })}</p>
-                      {expense.observation && (
-                        <p className="text-xs text-muted-foreground italic">{expense.observation}</p>
-                      )}
-                      <div className="flex gap-2 pt-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => onEditPersonalExpense(expense)}
-                          className="h-8 w-8 p-0 hover:bg-neon-purple/20"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => deletePersonalExpense(expense.id)}
-                          className="h-8 w-8 p-0 hover:bg-red-500/20 hover:text-red-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </AnimatePresence>
-        </CardContent>
-      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

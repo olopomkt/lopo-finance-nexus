@@ -1,17 +1,18 @@
-
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, Building2, User, BarChart3 } from 'lucide-react';
+import { Plus, Building2, User, BarChart3, FileText } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { CompanyRevenueForm } from '@/components/forms/CompanyRevenueForm';
 import { CompanyExpenseForm } from '@/components/forms/CompanyExpenseForm';
 import { PersonalExpenseForm } from '@/components/forms/PersonalExpenseForm';
 import { TransactionList } from '@/components/lists/TransactionList';
 import { Dashboard } from '@/components/charts/Dashboard';
+import { ReportsPanel } from '@/components/reports/ReportsPanel';
 import { Toaster } from '@/components/ui/toaster';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
+import { useFinanceData } from '@/hooks/useFinanceData';
 
 type FormType = 'revenue' | 'company-expense' | 'personal-expense' | null;
 
@@ -21,6 +22,8 @@ const Index = () => {
   const [editingRevenue, setEditingRevenue] = useState<CompanyRevenue | undefined>();
   const [editingCompanyExpense, setEditingCompanyExpense] = useState<CompanyExpense | undefined>();
   const [editingPersonalExpense, setEditingPersonalExpense] = useState<PersonalExpense | undefined>();
+
+  const { companyRevenues, companyExpenses, personalExpenses } = useFinanceData();
 
   const handleFormSave = () => {
     setActiveForm(null);
@@ -93,9 +96,16 @@ const Index = () => {
               >
                 Registros
               </TabsTrigger>
+              <TabsTrigger 
+                value="relatorios" 
+                className="data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Relatórios
+              </TabsTrigger>
             </TabsList>
 
-            {activeTab !== 'dashboard' && activeTab !== 'registros' && (
+            {activeTab !== 'dashboard' && activeTab !== 'registros' && activeTab !== 'relatorios' && (
               <div className="flex gap-2">
                 {activeTab === 'empresa' && (
                   <>
@@ -257,6 +267,22 @@ const Index = () => {
                   onEditRevenue={handleEditRevenue}
                   onEditCompanyExpense={handleEditCompanyExpense}
                   onEditPersonalExpense={handleEditPersonalExpense}
+                />
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="relatorios" className="mt-6">
+              <motion.div
+                key="relatorios"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <ReportsPanel
+                  revenues={companyRevenues}
+                  companyExpenses={companyExpenses}
+                  personalExpenses={personalExpenses}
                 />
               </motion.div>
             </TabsContent>
