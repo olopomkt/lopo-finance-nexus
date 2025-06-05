@@ -19,7 +19,6 @@ export type Database = {
           price: number
           type: string
           updated_at: string
-          user_id: string
         }
         Insert: {
           created_at?: string
@@ -30,7 +29,6 @@ export type Database = {
           price: number
           type: string
           updated_at?: string
-          user_id: string
         }
         Update: {
           created_at?: string
@@ -41,7 +39,6 @@ export type Database = {
           price?: number
           type?: string
           updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -57,7 +54,6 @@ export type Database = {
           price: number
           service: string
           updated_at: string
-          user_id: string
         }
         Insert: {
           client_name: string
@@ -70,7 +66,6 @@ export type Database = {
           price: number
           service: string
           updated_at?: string
-          user_id: string
         }
         Update: {
           client_name?: string
@@ -83,7 +78,6 @@ export type Database = {
           price?: number
           service?: string
           updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -96,7 +90,6 @@ export type Database = {
           payment_date: string
           price: number
           updated_at: string
-          user_id: string
         }
         Insert: {
           created_at?: string
@@ -106,7 +99,6 @@ export type Database = {
           payment_date: string
           price: number
           updated_at?: string
-          user_id: string
         }
         Update: {
           created_at?: string
@@ -116,7 +108,6 @@ export type Database = {
           payment_date?: string
           price?: number
           updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
