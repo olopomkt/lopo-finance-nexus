@@ -2,23 +2,18 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Plus, BarChart3, List, LogOut, User, Loader2 } from 'lucide-react';
+import { Plus, BarChart3, List } from 'lucide-react';
 import { CompanyRevenueForm } from '@/components/forms/CompanyRevenueForm';
 import { CompanyExpenseForm } from '@/components/forms/CompanyExpenseForm';
 import { PersonalExpenseForm } from '@/components/forms/PersonalExpenseForm';
 import { TransactionList } from '@/components/lists/TransactionList';
 import { Dashboard } from '@/components/charts/Dashboard';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
-import { useAuth } from '@/contexts/AuthContext';
-import { useDataMigration } from '@/hooks/useDataMigration';
-import { toast } from '@/hooks/use-toast';
 
 type FormType = 'revenue' | 'company-expense' | 'personal-expense' | null;
 type ViewType = 'dashboard' | 'list';
 
 export default function Index() {
-  const { user, signOut } = useAuth();
-  const { isMigrating } = useDataMigration();
   const [currentForm, setCurrentForm] = useState<FormType>(null);
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [editingRevenue, setEditingRevenue] = useState<CompanyRevenue | undefined>();
@@ -54,29 +49,6 @@ export default function Index() {
     setCurrentForm('personal-expense');
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao fazer logout",
-        variant: "destructive"
-      });
-    }
-  };
-
-  if (isMigrating) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background/95 to-background/90">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-          <p className="text-muted-foreground">Migrando dados para o banco de dados...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background/90">
       {/* Header */}
@@ -86,21 +58,6 @@ export default function Index() {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-neon-blue to-neon-purple bg-clip-text text-transparent">
               Controle de Custo MLN
             </h1>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <User className="h-4 w-4" />
-                {user?.email}
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSignOut}
-                className="border-muted hover:border-red-500 hover:text-red-500"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sair
-              </Button>
-            </div>
           </div>
         </div>
       </header>

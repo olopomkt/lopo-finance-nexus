@@ -1,12 +1,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
 import { toast } from '@/hooks/use-toast';
 
 export const useSupabaseData = () => {
-  const { user } = useAuth();
   const [companyRevenues, setCompanyRevenues] = useState<CompanyRevenue[]>([]);
   const [companyExpenses, setCompanyExpenses] = useState<CompanyExpense[]>([]);
   const [personalExpenses, setPersonalExpenses] = useState<PersonalExpense[]>([]);
@@ -15,8 +13,6 @@ export const useSupabaseData = () => {
 
   // Fetch all data
   const fetchAllData = useCallback(async () => {
-    if (!user) return;
-
     setIsLoading(true);
     setError(null);
 
@@ -25,17 +21,14 @@ export const useSupabaseData = () => {
         supabase
           .from('company_revenues')
           .select('*')
-          .eq('user_id', user.id)
           .order('payment_date', { ascending: false }),
         supabase
           .from('company_expenses')
           .select('*')
-          .eq('user_id', user.id)
           .order('payment_date', { ascending: false }),
         supabase
           .from('personal_expenses')
           .select('*')
-          .eq('user_id', user.id)
           .order('payment_date', { ascending: false })
       ]);
 
@@ -84,18 +77,15 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   // Save operations
   const saveRevenue = useCallback(async (data: Omit<CompanyRevenue, 'id' | 'createdAt'>) => {
-    if (!user) throw new Error('User not authenticated');
-
     setIsLoading(true);
     try {
       const { data: result, error } = await supabase
         .from('company_revenues')
         .insert({
-          user_id: user.id,
           client_name: data.clientName,
           service: data.service,
           price: data.price,
@@ -126,17 +116,14 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   const saveCompanyExpense = useCallback(async (data: Omit<CompanyExpense, 'id' | 'createdAt'>) => {
-    if (!user) throw new Error('User not authenticated');
-
     setIsLoading(true);
     try {
       const { data: result, error } = await supabase
         .from('company_expenses')
         .insert({
-          user_id: user.id,
           name: data.name,
           price: data.price,
           payment_method: data.paymentMethod,
@@ -163,17 +150,14 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   const savePersonalExpense = useCallback(async (data: Omit<PersonalExpense, 'id' | 'createdAt'>) => {
-    if (!user) throw new Error('User not authenticated');
-
     setIsLoading(true);
     try {
       const { data: result, error } = await supabase
         .from('personal_expenses')
         .insert({
-          user_id: user.id,
           name: data.name,
           price: data.price,
           payment_date: data.paymentDate.toISOString().split('T')[0],
@@ -198,12 +182,10 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   // Update operations
   const updateRevenue = useCallback(async (id: string, data: Partial<CompanyRevenue>) => {
-    if (!user) throw new Error('User not authenticated');
-
     setIsLoading(true);
     try {
       const updateData: any = {};
@@ -218,8 +200,7 @@ export const useSupabaseData = () => {
       const { error } = await supabase
         .from('company_revenues')
         .update(updateData)
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
 
       if (error) throw error;
 
@@ -229,11 +210,9 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   const updateCompanyExpense = useCallback(async (id: string, data: Partial<CompanyExpense>) => {
-    if (!user) throw new Error('User not authenticated');
-
     setIsLoading(true);
     try {
       const updateData: any = {};
@@ -246,8 +225,7 @@ export const useSupabaseData = () => {
       const { error } = await supabase
         .from('company_expenses')
         .update(updateData)
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
 
       if (error) throw error;
 
@@ -257,11 +235,9 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   const updatePersonalExpense = useCallback(async (id: string, data: Partial<PersonalExpense>) => {
-    if (!user) throw new Error('User not authenticated');
-
     setIsLoading(true);
     try {
       const updateData: any = {};
@@ -273,8 +249,7 @@ export const useSupabaseData = () => {
       const { error } = await supabase
         .from('personal_expenses')
         .update(updateData)
-        .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('id', id);
 
       if (error) throw error;
 
@@ -284,55 +259,44 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, []);
 
   // Delete operations
   const deleteRevenue = useCallback(async (id: string) => {
-    if (!user) throw new Error('User not authenticated');
-
     const { error } = await supabase
       .from('company_revenues')
       .delete()
-      .eq('id', id)
-      .eq('user_id', user.id);
+      .eq('id', id);
 
     if (error) throw error;
 
     setCompanyRevenues(prev => prev.filter(item => item.id !== id));
-  }, [user]);
+  }, []);
 
   const deleteCompanyExpense = useCallback(async (id: string) => {
-    if (!user) throw new Error('User not authenticated');
-
     const { error } = await supabase
       .from('company_expenses')
       .delete()
-      .eq('id', id)
-      .eq('user_id', user.id);
+      .eq('id', id);
 
     if (error) throw error;
 
     setCompanyExpenses(prev => prev.filter(item => item.id !== id));
-  }, [user]);
+  }, []);
 
   const deletePersonalExpense = useCallback(async (id: string) => {
-    if (!user) throw new Error('User not authenticated');
-
     const { error } = await supabase
       .from('personal_expenses')
       .delete()
-      .eq('id', id)
-      .eq('user_id', user.id);
+      .eq('id', id);
 
     if (error) throw error;
 
     setPersonalExpenses(prev => prev.filter(item => item.id !== id));
-  }, [user]);
+  }, []);
 
   // Set up real-time subscriptions
   useEffect(() => {
-    if (!user) return;
-
     const channel = supabase
       .channel('finance-data-changes')
       .on(
@@ -340,8 +304,7 @@ export const useSupabaseData = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'company_revenues',
-          filter: `user_id=eq.${user.id}`
+          table: 'company_revenues'
         },
         () => {
           setTimeout(() => fetchAllData(), 100);
@@ -352,8 +315,7 @@ export const useSupabaseData = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'company_expenses',
-          filter: `user_id=eq.${user.id}`
+          table: 'company_expenses'
         },
         () => {
           setTimeout(() => fetchAllData(), 100);
@@ -364,8 +326,7 @@ export const useSupabaseData = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'personal_expenses',
-          filter: `user_id=eq.${user.id}`
+          table: 'personal_expenses'
         },
         () => {
           setTimeout(() => fetchAllData(), 100);
@@ -376,18 +337,12 @@ export const useSupabaseData = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, fetchAllData]);
+  }, [fetchAllData]);
 
-  // Fetch data when user changes
+  // Fetch data on mount
   useEffect(() => {
-    if (user) {
-      fetchAllData();
-    } else {
-      setCompanyRevenues([]);
-      setCompanyExpenses([]);
-      setPersonalExpenses([]);
-    }
-  }, [user, fetchAllData]);
+    fetchAllData();
+  }, [fetchAllData]);
 
   return {
     // Data
