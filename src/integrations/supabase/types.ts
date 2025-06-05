@@ -9,7 +9,117 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      company_expenses: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          payment_date: string
+          payment_method: string
+          price: number
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          payment_date: string
+          payment_method: string
+          price: number
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          payment_date?: string
+          payment_method?: string
+          price?: number
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      company_revenues: {
+        Row: {
+          client_name: string
+          contract_months: number | null
+          contract_type: string
+          created_at: string
+          id: string
+          payment_date: string
+          payment_method: string
+          price: number
+          service: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_name: string
+          contract_months?: number | null
+          contract_type: string
+          created_at?: string
+          id?: string
+          payment_date: string
+          payment_method: string
+          price: number
+          service: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_name?: string
+          contract_months?: number | null
+          contract_type?: string
+          created_at?: string
+          id?: string
+          payment_date?: string
+          payment_method?: string
+          price?: number
+          service?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      personal_expenses: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          observation: string | null
+          payment_date: string
+          price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          observation?: string | null
+          payment_date: string
+          price: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          observation?: string | null
+          payment_date?: string
+          price?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

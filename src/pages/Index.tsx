@@ -1,39 +1,39 @@
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, Building2, User, BarChart3, FileText } from 'lucide-react';
-import { Header } from '@/components/Header';
+import { Plus, BarChart3, List, LogOut, User, Loader2 } from 'lucide-react';
 import { CompanyRevenueForm } from '@/components/forms/CompanyRevenueForm';
 import { CompanyExpenseForm } from '@/components/forms/CompanyExpenseForm';
 import { PersonalExpenseForm } from '@/components/forms/PersonalExpenseForm';
 import { TransactionList } from '@/components/lists/TransactionList';
 import { Dashboard } from '@/components/charts/Dashboard';
-import { ReportsPanel } from '@/components/reports/ReportsPanel';
-import { Toaster } from '@/components/ui/toaster';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
-import { useFinanceData } from '@/hooks/useFinanceData';
+import { useAuth } from '@/contexts/AuthContext';
+import { useDataMigration } from '@/hooks/useDataMigration';
+import { toast } from '@/hooks/use-toast';
 
 type FormType = 'revenue' | 'company-expense' | 'personal-expense' | null;
+type ViewType = 'dashboard' | 'list';
 
-const Index = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [activeForm, setActiveForm] = useState<FormType>(null);
+export default function Index() {
+  const { user, signOut } = useAuth();
+  const { isMigrating } = useDataMigration();
+  const [currentForm, setCurrentForm] = useState<FormType>(null);
+  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
   const [editingRevenue, setEditingRevenue] = useState<CompanyRevenue | undefined>();
   const [editingCompanyExpense, setEditingCompanyExpense] = useState<CompanyExpense | undefined>();
   const [editingPersonalExpense, setEditingPersonalExpense] = useState<PersonalExpense | undefined>();
 
-  const { companyRevenues, companyExpenses, personalExpenses } = useFinanceData();
-
-  const handleFormSave = () => {
-    setActiveForm(null);
+  const handleSave = () => {
+    setCurrentForm(null);
     setEditingRevenue(undefined);
     setEditingCompanyExpense(undefined);
     setEditingPersonalExpense(undefined);
   };
 
-  const handleFormCancel = () => {
-    setActiveForm(null);
+  const handleCancel = () => {
+    setCurrentForm(null);
     setEditingRevenue(undefined);
     setEditingCompanyExpense(undefined);
     setEditingPersonalExpense(undefined);
@@ -41,258 +41,192 @@ const Index = () => {
 
   const handleEditRevenue = (revenue: CompanyRevenue) => {
     setEditingRevenue(revenue);
-    setActiveForm('revenue');
-    setActiveTab('empresa');
+    setCurrentForm('revenue');
   };
 
   const handleEditCompanyExpense = (expense: CompanyExpense) => {
     setEditingCompanyExpense(expense);
-    setActiveForm('company-expense');
-    setActiveTab('empresa');
+    setCurrentForm('company-expense');
   };
 
   const handleEditPersonalExpense = (expense: PersonalExpense) => {
     setEditingPersonalExpense(expense);
-    setActiveForm('personal-expense');
-    setActiveTab('pessoal');
+    setCurrentForm('personal-expense');
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-dark">
-      <Header />
-      
-      <div className="container mx-auto px-4 py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between mb-8"
-          >
-            <TabsList className="glass-effect border border-neon-blue/20">
-              <TabsTrigger 
-                value="dashboard" 
-                className="data-[state=active]:bg-neon-blue/20 data-[state=active]:text-neon-blue"
-              >
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Dashboard
-              </TabsTrigger>
-              <TabsTrigger 
-                value="empresa" 
-                className="data-[state=active]:bg-neon-blue/20 data-[state=active]:text-neon-blue"
-              >
-                <Building2 className="h-4 w-4 mr-2" />
-                Empresa
-              </TabsTrigger>
-              <TabsTrigger 
-                value="pessoal" 
-                className="data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple"
-              >
-                <User className="h-4 w-4 mr-2" />
-                Pessoal
-              </TabsTrigger>
-              <TabsTrigger 
-                value="registros" 
-                className="data-[state=active]:bg-neon-cyan/20 data-[state=active]:text-neon-cyan"
-              >
-                Registros
-              </TabsTrigger>
-              <TabsTrigger 
-                value="relatorios" 
-                className="data-[state=active]:bg-neon-purple/20 data-[state=active]:text-neon-purple"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Relatórios
-              </TabsTrigger>
-            </TabsList>
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao fazer logout",
+        variant: "destructive"
+      });
+    }
+  };
 
-            {activeTab !== 'dashboard' && activeTab !== 'registros' && activeTab !== 'relatorios' && (
-              <div className="flex gap-2">
-                {activeTab === 'empresa' && (
-                  <>
-                    <Button
-                      onClick={() => setActiveForm('revenue')}
-                      className="bg-gradient-to-r from-neon-blue to-neon-cyan hover:from-neon-blue/80 hover:to-neon-cyan/80 text-white neon-glow"
-                      disabled={activeForm !== null}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Nova Receita
-                    </Button>
-                    <Button
-                      onClick={() => setActiveForm('company-expense')}
-                      className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white"
-                      disabled={activeForm !== null}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Nova Despesa
-                    </Button>
-                  </>
-                )}
-                {activeTab === 'pessoal' && (
-                  <Button
-                    onClick={() => setActiveForm('personal-expense')}
-                    className="bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-purple/80 hover:to-neon-pink/80 text-white neon-glow"
-                    disabled={activeForm !== null}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nova Conta
-                  </Button>
-                )}
-              </div>
-            )}
-          </motion.div>
-
-          <AnimatePresence mode="wait">
-            <TabsContent value="dashboard" className="mt-6">
-              <motion.div
-                key="dashboard"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Dashboard />
-              </motion.div>
-            </TabsContent>
-
-            <TabsContent value="empresa" className="mt-6">
-              <motion.div
-                key="empresa"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-6"
-              >
-                <AnimatePresence>
-                  {activeForm === 'revenue' && (
-                    <CompanyRevenueForm
-                      revenue={editingRevenue}
-                      onSave={handleFormSave}
-                      onCancel={handleFormCancel}
-                    />
-                  )}
-                  {activeForm === 'company-expense' && (
-                    <CompanyExpenseForm
-                      expense={editingCompanyExpense}
-                      onSave={handleFormSave}
-                      onCancel={handleFormCancel}
-                    />
-                  )}
-                </AnimatePresence>
-
-                {activeForm === null && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center py-12"
-                  >
-                    <Building2 className="h-16 w-16 mx-auto text-neon-blue/50 mb-4" />
-                    <h3 className="text-xl font-semibold text-neon-blue mb-2">Gestão Empresarial</h3>
-                    <p className="text-muted-foreground mb-6">
-                      Cadastre receitas e despesas da sua empresa para manter o controle financeiro
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                      <Button
-                        onClick={() => setActiveForm('revenue')}
-                        className="bg-gradient-to-r from-neon-blue to-neon-cyan hover:from-neon-blue/80 hover:to-neon-cyan/80 text-white animate-pulse-neon"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Cadastrar Receita
-                      </Button>
-                      <Button
-                        onClick={() => setActiveForm('company-expense')}
-                        variant="outline"
-                        className="border-red-500 text-red-400 hover:bg-red-500/10"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Cadastrar Despesa
-                      </Button>
-                    </div>
-                  </motion.div>
-                )}
-              </motion.div>
-            </TabsContent>
-
-            <TabsContent value="pessoal" className="mt-6">
-              <motion.div
-                key="pessoal"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-                className="space-y-6"
-              >
-                <AnimatePresence>
-                  {activeForm === 'personal-expense' && (
-                    <PersonalExpenseForm
-                      expense={editingPersonalExpense}
-                      onSave={handleFormSave}
-                      onCancel={handleFormCancel}
-                    />
-                  )}
-                </AnimatePresence>
-
-                {activeForm === null && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-center py-12"
-                  >
-                    <User className="h-16 w-16 mx-auto text-neon-purple/50 mb-4" />
-                    <h3 className="text-xl font-semibold text-neon-purple mb-2">Contas Pessoais</h3>
-                    <p className="text-muted-foreground mb-6">
-                      Gerencie suas contas pessoais e mantenha suas finanças organizadas
-                    </p>
-                    <Button
-                      onClick={() => setActiveForm('personal-expense')}
-                      className="bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-purple/80 hover:to-neon-pink/80 text-white animate-pulse-neon"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Cadastrar Conta
-                    </Button>
-                  </motion.div>
-                )}
-              </motion.div>
-            </TabsContent>
-
-            <TabsContent value="registros" className="mt-6">
-              <motion.div
-                key="registros"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <TransactionList
-                  onEditRevenue={handleEditRevenue}
-                  onEditCompanyExpense={handleEditCompanyExpense}
-                  onEditPersonalExpense={handleEditPersonalExpense}
-                />
-              </motion.div>
-            </TabsContent>
-
-            <TabsContent value="relatorios" className="mt-6">
-              <motion.div
-                key="relatorios"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <ReportsPanel
-                  revenues={companyRevenues}
-                  companyExpenses={companyExpenses}
-                  personalExpenses={personalExpenses}
-                />
-              </motion.div>
-            </TabsContent>
-          </AnimatePresence>
-        </Tabs>
+  if (isMigrating) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background/95 to-background/90">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
+          <p className="text-muted-foreground">Migrando dados para o banco de dados...</p>
+        </div>
       </div>
-      
-      <Toaster />
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-background/90">
+      {/* Header */}
+      <header className="border-b border-border/50 bg-card/20 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-neon-blue to-neon-purple bg-clip-text text-transparent">
+              Controle de Custo MLN
+            </h1>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <User className="h-4 w-4" />
+                {user?.email}
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleSignOut}
+                className="border-muted hover:border-red-500 hover:text-red-500"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="container mx-auto px-4 py-8">
+        <AnimatePresence mode="wait">
+          {currentForm ? (
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+            >
+              {currentForm === 'revenue' && (
+                <CompanyRevenueForm
+                  revenue={editingRevenue}
+                  onSave={handleSave}
+                  onCancel={handleCancel}
+                />
+              )}
+              {currentForm === 'company-expense' && (
+                <CompanyExpenseForm
+                  expense={editingCompanyExpense}
+                  onSave={handleSave}
+                  onCancel={handleCancel}
+                />
+              )}
+              {currentForm === 'personal-expense' && (
+                <PersonalExpenseForm
+                  expense={editingPersonalExpense}
+                  onSave={handleSave}
+                  onCancel={handleCancel}
+                />
+              )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="main"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-6"
+            >
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    onClick={() => setCurrentForm('revenue')}
+                    className="bg-gradient-to-r from-neon-blue to-neon-purple hover:from-neon-blue/80 hover:to-neon-purple/80 text-white shadow-lg hover:shadow-neon-blue/25"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nova Receita
+                  </Button>
+                  <Button
+                    onClick={() => setCurrentForm('company-expense')}
+                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-red-500/25"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nova Despesa Empresarial
+                  </Button>
+                  <Button
+                    onClick={() => setCurrentForm('personal-expense')}
+                    className="bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-purple/80 hover:to-neon-pink/80 text-white shadow-lg hover:shadow-neon-purple/25"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Nova Conta Pessoal
+                  </Button>
+                </div>
+
+                {/* View Toggle */}
+                <div className="flex rounded-lg border border-border/50 bg-card/30 p-1">
+                  <Button
+                    variant={currentView === 'dashboard' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setCurrentView('dashboard')}
+                    className={currentView === 'dashboard' ? 'bg-primary text-primary-foreground' : ''}
+                  >
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    Dashboard
+                  </Button>
+                  <Button
+                    variant={currentView === 'list' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setCurrentView('list')}
+                    className={currentView === 'list' ? 'bg-primary text-primary-foreground' : ''}
+                  >
+                    <List className="mr-2 h-4 w-4" />
+                    Lista
+                  </Button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <AnimatePresence mode="wait">
+                {currentView === 'dashboard' ? (
+                  <motion.div
+                    key="dashboard"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Dashboard />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="list"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <TransactionList
+                      onEditRevenue={handleEditRevenue}
+                      onEditCompanyExpense={handleEditCompanyExpense}
+                      onEditPersonalExpense={handleEditPersonalExpense}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
-};
-
-export default Index;
+}
