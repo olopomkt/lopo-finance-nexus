@@ -44,20 +44,33 @@ export const useSupabaseData = () => {
       if (personalExpensesResult.error) throw personalExpensesResult.error;
 
       setCompanyRevenues(revenuesResult.data?.map(item => ({
-        ...item,
+        id: item.id,
+        clientName: item.client_name,
+        service: item.service,
+        price: item.price,
+        paymentMethod: item.payment_method,
+        contractType: item.contract_type,
+        contractMonths: item.contract_months,
         paymentDate: new Date(item.payment_date),
         createdAt: new Date(item.created_at)
       })) || []);
 
       setCompanyExpenses(companyExpensesResult.data?.map(item => ({
-        ...item,
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        paymentMethod: item.payment_method,
+        type: item.type,
         paymentDate: new Date(item.payment_date),
         createdAt: new Date(item.created_at)
       })) || []);
 
       setPersonalExpenses(personalExpensesResult.data?.map(item => ({
-        ...item,
+        id: item.id,
+        name: item.name,
+        price: item.price,
         paymentDate: new Date(item.payment_date),
+        observation: item.observation,
         createdAt: new Date(item.created_at)
       })) || []);
 
@@ -97,7 +110,13 @@ export const useSupabaseData = () => {
       if (error) throw error;
       
       const newRevenue: CompanyRevenue = {
-        ...result,
+        id: result.id,
+        clientName: result.client_name,
+        service: result.service,
+        price: result.price,
+        paymentMethod: result.payment_method,
+        contractType: result.contract_type,
+        contractMonths: result.contract_months,
         paymentDate: new Date(result.payment_date),
         createdAt: new Date(result.created_at)
       };
@@ -130,7 +149,11 @@ export const useSupabaseData = () => {
       if (error) throw error;
       
       const newExpense: CompanyExpense = {
-        ...result,
+        id: result.id,
+        name: result.name,
+        price: result.price,
+        paymentMethod: result.payment_method,
+        type: result.type,
         paymentDate: new Date(result.payment_date),
         createdAt: new Date(result.created_at)
       };
@@ -162,8 +185,11 @@ export const useSupabaseData = () => {
       if (error) throw error;
       
       const newExpense: PersonalExpense = {
-        ...result,
+        id: result.id,
+        name: result.name,
+        price: result.price,
         paymentDate: new Date(result.payment_date),
+        observation: result.observation,
         createdAt: new Date(result.created_at)
       };
 
