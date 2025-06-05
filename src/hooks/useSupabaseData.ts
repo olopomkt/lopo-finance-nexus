@@ -48,8 +48,8 @@ export const useSupabaseData = () => {
         clientName: item.client_name,
         service: item.service,
         price: item.price,
-        paymentMethod: item.payment_method,
-        contractType: item.contract_type,
+        paymentMethod: item.payment_method as 'Pix' | 'Cartão' | 'Outro',
+        contractType: item.contract_type as 'único' | 'mensal',
         contractMonths: item.contract_months,
         paymentDate: new Date(item.payment_date),
         createdAt: new Date(item.created_at)
@@ -59,8 +59,8 @@ export const useSupabaseData = () => {
         id: item.id,
         name: item.name,
         price: item.price,
-        paymentMethod: item.payment_method,
-        type: item.type,
+        paymentMethod: item.payment_method as 'Pix' | 'Cartão' | 'Outro',
+        type: item.type as 'Assinatura' | 'Único',
         paymentDate: new Date(item.payment_date),
         createdAt: new Date(item.created_at)
       })) || []);
@@ -114,8 +114,8 @@ export const useSupabaseData = () => {
         clientName: result.client_name,
         service: result.service,
         price: result.price,
-        paymentMethod: result.payment_method,
-        contractType: result.contract_type,
+        paymentMethod: result.payment_method as 'Pix' | 'Cartão' | 'Outro',
+        contractType: result.contract_type as 'único' | 'mensal',
         contractMonths: result.contract_months,
         paymentDate: new Date(result.payment_date),
         createdAt: new Date(result.created_at)
@@ -152,8 +152,8 @@ export const useSupabaseData = () => {
         id: result.id,
         name: result.name,
         price: result.price,
-        paymentMethod: result.payment_method,
-        type: result.type,
+        paymentMethod: result.payment_method as 'Pix' | 'Cartão' | 'Outro',
+        type: result.type as 'Assinatura' | 'Único',
         paymentDate: new Date(result.payment_date),
         createdAt: new Date(result.created_at)
       };
