@@ -1,5 +1,6 @@
-
-import { useState, useCallback, memo } from 'react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,94 +9,97 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, User, Loader2 } from 'lucide-react';
+import { CalendarIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { PersonalExpense } from '@/types';
-import { useFormValidation } from '@/hooks/useFormValidation';
 import { useFinanceData } from '@/hooks/useFinanceData';
+import { PersonalExpense } from '@/types';
 import { personalExpenseSchema } from '@/lib/validations';
 import { toast } from '@/hooks/use-toast';
 
-interface Props {
+interface PersonalExpenseFormProps {
   expense?: PersonalExpense;
   onSave: () => void;
   onCancel: () => void;
 }
 
-export const PersonalExpenseForm = memo(({ expense, onSave, onCancel }: Props) => {
-  const [formData, setFormData] = useState({
-    name: expense?.name || '',
-    price: expense?.price || 0,
-    paymentDate: expense?.paymentDate || new Date(),
-    observation: expense?.observation || ''
+export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpenseFormProps) => {
+  const { savePersonalExpense, updatePersonalExpense } = useFinanceData();
+  const [paymentDate, setPaymentDate] = useState<Date>(expense?.paymentDate || new Date());
+
+  const form = useForm({
+    resolver: zodResolver(personalExpenseSchema),
+    defaultValues: {
+      name: expense?.name || '',
+      price: expense?.price || 0,
+      observation: expense?.observation || ''
+    }
   });
 
-  const { savePersonalExpense, updatePersonalExpense, isLoading } = useFinanceData();
-
-  const handleSuccess = useCallback(async (validatedData: typeof formData) => {
+  const onSubmit = async (data: any) => {
     try {
+      const expenseData = {
+        name: data.name,
+        price: Number(data.price),
+        paymentDate,
+        observation: data.observation || '',
+        paid: expense?.paid || false,
+        paidDate: expense?.paidDate
+      };
+
       if (expense) {
-        await updatePersonalExpense(expense.id, validatedData);
-        toast({ title: "Sucesso", description: "Conta atualizada com sucesso!" });
+        await updatePersonalExpense(expense.id, expenseData);
+        toast({ title: "Sucesso", description: "Conta pessoal atualizada com sucesso!" });
       } else {
-        await savePersonalExpense(validatedData);
-        toast({ title: "Sucesso", description: "Conta cadastrada com sucesso!" });
+        await savePersonalExpense(expenseData);
+        toast({ title: "Sucesso", description: "Conta pessoal cadastrada com sucesso!" });
       }
+      
       onSave();
     } catch (error) {
-      toast({ title: "Erro", description: "Erro ao salvar conta", variant: "destructive" });
+      toast({ 
+        title: "Erro", 
+        description: "Erro ao salvar conta pessoal", 
+        variant: "destructive" 
+      });
     }
-  }, [expense, savePersonalExpense, updatePersonalExpense, onSave]);
-
-  const { validate, getFieldError, isValidating } = useFormValidation({
-    schema: personalExpenseSchema,
-    onSuccess: handleSuccess
-  });
-
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    validate(formData);
-  }, [formData, validate]);
-
-  const updateField = useCallback((field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  }, []);
-
-  const isProcessing = isLoading || isValidating;
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
     >
-      <Card className="neon-border bg-card/50 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-neon-purple">
-            <User className="h-5 w-5" />
-            {expense ? 'Editar Conta' : 'Nova Conta Pessoal'}
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-2xl font-bold">
+            {expense ? 'Editar Conta Pessoal' : 'Nova Conta Pessoal'}
           </CardTitle>
+          <Button variant="ghost" size="icon" onClick={onCancel}>
+            <X className="h-4 w-4" />
+          </Button>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome da Conta *</Label>
                 <Input
                   id="name"
-                  value={formData.name}
-                  onChange={(e) => updateField('name', e.target.value)}
+                  value={form.watch('name')}
+                  onChange={form.register('name')}
                   className={cn(
                     "bg-background/50 border-muted focus:border-neon-blue",
-                    getFieldError('name') && "border-red-500"
+                    form.errors.name && "border-red-500"
                   )}
                   placeholder="Ex: Conta de luz, internet..."
-                  disabled={isProcessing}
+                  disabled={form.isSubmitting}
                 />
-                {getFieldError('name') && (
-                  <p className="text-sm text-red-500">{getFieldError('name')}</p>
+                {form.errors.name && (
+                  <p className="text-sm text-red-500">{form.errors.name.message}</p>
                 )}
               </div>
 
@@ -106,17 +110,17 @@ export const PersonalExpenseForm = memo(({ expense, onSave, onCancel }: Props) =
                   type="number"
                   step="0.01"
                   min="0"
-                  value={formData.price}
-                  onChange={(e) => updateField('price', parseFloat(e.target.value) || 0)}
+                  value={form.watch('price')}
+                  onChange={form.register('price')}
                   className={cn(
                     "bg-background/50 border-muted focus:border-neon-blue",
-                    getFieldError('price') && "border-red-500"
+                    form.errors.price && "border-red-500"
                   )}
                   placeholder="0.00"
-                  disabled={isProcessing}
+                  disabled={form.isSubmitting}
                 />
-                {getFieldError('price') && (
-                  <p className="text-sm text-red-500">{getFieldError('price')}</p>
+                {form.errors.price && (
+                  <p className="text-sm text-red-500">{form.errors.price.message}</p>
                 )}
               </div>
 
@@ -128,27 +132,27 @@ export const PersonalExpenseForm = memo(({ expense, onSave, onCancel }: Props) =
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal bg-background/50 border-muted hover:border-neon-blue",
-                        !formData.paymentDate && "text-muted-foreground",
-                        getFieldError('paymentDate') && "border-red-500"
+                        !paymentDate && "text-muted-foreground",
+                        form.errors.paymentDate && "border-red-500"
                       )}
-                      disabled={isProcessing}
+                      disabled={form.isSubmitting}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.paymentDate ? format(formData.paymentDate, "PPP", { locale: ptBR }) : "Selecione uma data"}
+                      {paymentDate ? format(paymentDate, "PPP", { locale: ptBR }) : "Selecione uma data"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-background border-muted" align="start">
                     <Calendar
                       mode="single"
-                      selected={formData.paymentDate}
-                      onSelect={(date) => date && updateField('paymentDate', date)}
+                      selected={paymentDate}
+                      onSelect={(date) => date && setPaymentDate(date)}
                       initialFocus
                       className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>
-                {getFieldError('paymentDate') && (
-                  <p className="text-sm text-red-500">{getFieldError('paymentDate')}</p>
+                {form.errors.paymentDate && (
+                  <p className="text-sm text-red-500">{form.errors.paymentDate.message}</p>
                 )}
               </div>
 
@@ -156,39 +160,28 @@ export const PersonalExpenseForm = memo(({ expense, onSave, onCancel }: Props) =
                 <Label htmlFor="observation">Observação</Label>
                 <Textarea
                   id="observation"
-                  value={formData.observation}
-                  onChange={(e) => updateField('observation', e.target.value)}
+                  value={form.watch('observation')}
+                  onChange={form.register('observation')}
                   className={cn(
                     "bg-background/50 border-muted focus:border-neon-blue resize-none",
-                    getFieldError('observation') && "border-red-500"
+                    form.errors.observation && "border-red-500"
                   )}
                   placeholder="Observações adicionais (opcional)"
                   rows={3}
-                  disabled={isProcessing}
+                  disabled={form.isSubmitting}
                 />
-                {getFieldError('observation') && (
-                  <p className="text-sm text-red-500">{getFieldError('observation')}</p>
+                {form.errors.observation && (
+                  <p className="text-sm text-red-500">{form.errors.observation.message}</p>
                 )}
               </div>
             </div>
 
-            <div className="flex gap-3 pt-4">
-              <Button
-                type="submit"
-                className="flex-1 bg-gradient-to-r from-neon-purple to-neon-pink hover:from-neon-purple/80 hover:to-neon-pink/80 text-white"
-                disabled={isProcessing}
-              >
-                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {expense ? 'Atualizar' : 'Salvar'} Conta
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
-                className="border-muted hover:border-red-500 hover:text-red-500"
-                disabled={isProcessing}
-              >
+            <div className="flex gap-4 pt-4">
+              <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
                 Cancelar
+              </Button>
+              <Button type="submit" className="flex-1">
+                {expense ? 'Atualizar' : 'Cadastrar'}
               </Button>
             </div>
           </form>
@@ -196,6 +189,6 @@ export const PersonalExpenseForm = memo(({ expense, onSave, onCancel }: Props) =
       </Card>
     </motion.div>
   );
-});
+};
 
 PersonalExpenseForm.displayName = 'PersonalExpenseForm';
