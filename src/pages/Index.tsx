@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, BarChart3, List, Building2, User, TrendingUp } from 'lucide-react';
 import { MotivationalQuotes } from '@/components/MotivationalQuotes';
 import { FinancialDashboard } from '@/components/charts/FinancialDashboard';
-import { TransactionList } from '@/components/lists/TransactionList';
+import { RecordsView } from '@/components/RecordsView';
 import { CompanyRevenueForm } from '@/components/forms/CompanyRevenueForm';
 import { CompanyExpenseForm } from '@/components/forms/CompanyExpenseForm';
 import { PersonalExpenseForm } from '@/components/forms/PersonalExpenseForm';
@@ -108,8 +108,8 @@ const Index = () => {
               </Card>
             </div>
 
-            {/* Lista de Transações */}
-            <TransactionList
+            {/* Componente de Registros com Filtros */}
+            <RecordsView
               onEditRevenue={handleEditRevenue}
               onEditCompanyExpense={handleEditCompanyExpense}
               onEditPersonalExpense={handleEditPersonalExpense}
