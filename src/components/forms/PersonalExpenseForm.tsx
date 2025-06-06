@@ -25,7 +25,10 @@ interface PersonalExpenseFormProps {
 }
 
 export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpenseFormProps) => {
+  console.log('PersonalExpenseForm render started', { expense });
+  
   const { savePersonalExpense, updatePersonalExpense } = useFinanceData();
+  console.log('useFinanceData hook called');
 
   const form = useForm({
     resolver: zodResolver(personalExpenseSchema),
@@ -36,8 +39,10 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
       paymentDate: expense?.paymentDate || new Date()
     }
   });
+  console.log('useForm hook called');
 
   const onSubmit = async (data: any) => {
+    console.log('Form submit started', data);
     try {
       const expenseData = {
         name: data.name,
@@ -58,6 +63,7 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
       
       onSave();
     } catch (error) {
+      console.error('Form submission error:', error);
       toast({ 
         title: "Erro", 
         description: "Erro ao salvar conta pessoal", 
@@ -65,6 +71,8 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
       });
     }
   };
+
+  console.log('PersonalExpenseForm render completed, returning JSX');
 
   return (
     <motion.div
