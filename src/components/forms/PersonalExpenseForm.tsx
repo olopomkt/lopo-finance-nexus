@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,6 +37,8 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
       observation: expense?.observation || ''
     }
   });
+
+  const { formState: { errors, isSubmitting } } = form;
 
   const onSubmit = async (data: any) => {
     try {
@@ -89,17 +92,16 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
                 <Label htmlFor="name">Nome da Conta *</Label>
                 <Input
                   id="name"
-                  value={form.watch('name')}
-                  onChange={form.register('name')}
+                  {...form.register('name')}
                   className={cn(
                     "bg-background/50 border-muted focus:border-neon-blue",
-                    form.errors.name && "border-red-500"
+                    errors.name && "border-red-500"
                   )}
                   placeholder="Ex: Conta de luz, internet..."
-                  disabled={form.isSubmitting}
+                  disabled={isSubmitting}
                 />
-                {form.errors.name && (
-                  <p className="text-sm text-red-500">{form.errors.name.message}</p>
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name.message}</p>
                 )}
               </div>
 
@@ -110,17 +112,16 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
                   type="number"
                   step="0.01"
                   min="0"
-                  value={form.watch('price')}
-                  onChange={form.register('price')}
+                  {...form.register('price')}
                   className={cn(
                     "bg-background/50 border-muted focus:border-neon-blue",
-                    form.errors.price && "border-red-500"
+                    errors.price && "border-red-500"
                   )}
                   placeholder="0.00"
-                  disabled={form.isSubmitting}
+                  disabled={isSubmitting}
                 />
-                {form.errors.price && (
-                  <p className="text-sm text-red-500">{form.errors.price.message}</p>
+                {errors.price && (
+                  <p className="text-sm text-red-500">{errors.price.message}</p>
                 )}
               </div>
 
@@ -132,10 +133,9 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal bg-background/50 border-muted hover:border-neon-blue",
-                        !paymentDate && "text-muted-foreground",
-                        form.errors.paymentDate && "border-red-500"
+                        !paymentDate && "text-muted-foreground"
                       )}
-                      disabled={form.isSubmitting}
+                      disabled={isSubmitting}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {paymentDate ? format(paymentDate, "PPP", { locale: ptBR }) : "Selecione uma data"}
@@ -151,27 +151,23 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
                     />
                   </PopoverContent>
                 </Popover>
-                {form.errors.paymentDate && (
-                  <p className="text-sm text-red-500">{form.errors.paymentDate.message}</p>
-                )}
               </div>
 
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="observation">Observação</Label>
                 <Textarea
                   id="observation"
-                  value={form.watch('observation')}
-                  onChange={form.register('observation')}
+                  {...form.register('observation')}
                   className={cn(
                     "bg-background/50 border-muted focus:border-neon-blue resize-none",
-                    form.errors.observation && "border-red-500"
+                    errors.observation && "border-red-500"
                   )}
                   placeholder="Observações adicionais (opcional)"
                   rows={3}
-                  disabled={form.isSubmitting}
+                  disabled={isSubmitting}
                 />
-                {form.errors.observation && (
-                  <p className="text-sm text-red-500">{form.errors.observation.message}</p>
+                {errors.observation && (
+                  <p className="text-sm text-red-500">{errors.observation.message}</p>
                 )}
               </div>
             </div>
@@ -180,7 +176,7 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
               <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
                 Cancelar
               </Button>
-              <Button type="submit" className="flex-1">
+              <Button type="submit" className="flex-1" disabled={isSubmitting}>
                 {expense ? 'Atualizar' : 'Cadastrar'}
               </Button>
             </div>
