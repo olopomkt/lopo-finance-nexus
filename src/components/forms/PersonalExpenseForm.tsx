@@ -6,10 +6,10 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { CalendarIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -27,18 +27,14 @@ interface PersonalExpenseFormProps {
 
 export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpenseFormProps) => {
   const { savePersonalExpense, updatePersonalExpense } = useFinanceData();
-  const [paymentDate, setPaymentDate] = useState<Date>(expense?.paymentDate || new Date());
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting }
-  } = useForm({
+  const form = useForm({
     resolver: zodResolver(personalExpenseSchema),
     defaultValues: {
       name: expense?.name || '',
       price: expense?.price || 0,
-      observation: expense?.observation || ''
+      observation: expense?.observation || '',
+      paymentDate: expense?.paymentDate || new Date()
     }
   });
 
@@ -47,7 +43,7 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
       const expenseData = {
         name: data.name,
         price: Number(data.price),
-        paymentDate,
+        paymentDate: data.paymentDate,
         observation: data.observation || '',
         paid: expense?.paid || false,
         paidDate: expense?.paidDate
@@ -88,101 +84,118 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
           </Button>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome da Conta *</Label>
-                <Input
-                  id="name"
-                  {...register('name')}
-                  className={cn(
-                    "bg-background/50 border-muted focus:border-neon-blue",
-                    errors.name && "border-red-500"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome da Conta *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          className="bg-background/50 border-muted focus:border-neon-blue"
+                          placeholder="Ex: Conta de luz, internet..."
+                          disabled={form.formState.isSubmitting}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                  placeholder="Ex: Conta de luz, internet..."
-                  disabled={isSubmitting}
                 />
-                {errors.name && (
-                  <p className="text-sm text-red-500">{errors.name.message}</p>
-                )}
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="price">Preço (R$) *</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  {...register('price')}
-                  className={cn(
-                    "bg-background/50 border-muted focus:border-neon-blue",
-                    errors.price && "border-red-500"
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço (R$) *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          className="bg-background/50 border-muted focus:border-neon-blue"
+                          placeholder="0.00"
+                          disabled={form.formState.isSubmitting}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                  placeholder="0.00"
-                  disabled={isSubmitting}
                 />
-                {errors.price && (
-                  <p className="text-sm text-red-500">{errors.price.message}</p>
-                )}
-              </div>
 
-              <div className="space-y-2 md:col-span-2">
-                <Label>Data de Pagamento</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal bg-background/50 border-muted hover:border-neon-blue",
-                        !paymentDate && "text-muted-foreground"
-                      )}
-                      disabled={isSubmitting}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {paymentDate ? format(paymentDate, "PPP", { locale: ptBR }) : "Selecione uma data"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-background border-muted" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={paymentDate}
-                      onSelect={(date) => date && setPaymentDate(date)}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="observation">Observação</Label>
-                <Textarea
-                  id="observation"
-                  {...register('observation')}
-                  className={cn(
-                    "bg-background/50 border-muted focus:border-neon-blue resize-none",
-                    errors.observation && "border-red-500"
+                <FormField
+                  control={form.control}
+                  name="paymentDate"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Data de Pagamento</FormLabel>
+                      <FormControl>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal bg-background/50 border-muted hover:border-neon-blue",
+                                !field.value && "text-muted-foreground"
+                              )}
+                              disabled={form.formState.isSubmitting}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {field.value ? format(field.value, "PPP", { locale: ptBR }) : "Selecione uma data"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 bg-background border-muted" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                  placeholder="Observações adicionais (opcional)"
-                  rows={3}
-                  disabled={isSubmitting}
                 />
-                {errors.observation && (
-                  <p className="text-sm text-red-500">{errors.observation.message}</p>
-                )}
-              </div>
-            </div>
 
-            <div className="flex gap-4 pt-4">
-              <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
-                Cancelar
-              </Button>
-              <Button type="submit" className="flex-1" disabled={isSubmitting}>
-                {expense ? 'Atualizar' : 'Cadastrar'}
-              </Button>
-            </div>
-          </form>
+                <FormField
+                  control={form.control}
+                  name="observation"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Observação</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          className="bg-background/50 border-muted focus:border-neon-blue resize-none"
+                          placeholder="Observações adicionais (opcional)"
+                          rows={3}
+                          disabled={form.formState.isSubmitting}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+                  Cancelar
+                </Button>
+                <Button type="submit" className="flex-1" disabled={form.formState.isSubmitting}>
+                  {expense ? 'Atualizar' : 'Cadastrar'}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </motion.div>
