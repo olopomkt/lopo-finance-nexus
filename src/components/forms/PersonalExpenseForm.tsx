@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
@@ -98,7 +97,6 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
                           {...field}
                           className="bg-background/50 border-muted focus:border-neon-blue"
                           placeholder="Ex: Conta de luz, internet..."
-                          disabled={form.formState.isSubmitting}
                         />
                       </FormControl>
                       <FormMessage />
@@ -120,7 +118,6 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
                           min="0"
                           className="bg-background/50 border-muted focus:border-neon-blue"
                           placeholder="0.00"
-                          disabled={form.formState.isSubmitting}
                         />
                       </FormControl>
                       <FormMessage />
@@ -143,7 +140,6 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
                                 "w-full justify-start text-left font-normal bg-background/50 border-muted hover:border-neon-blue",
                                 !field.value && "text-muted-foreground"
                               )}
-                              disabled={form.formState.isSubmitting}
                             >
                               <CalendarIcon className="mr-2 h-4 w-4" />
                               {field.value ? format(field.value, "PPP", { locale: ptBR }) : "Selecione uma data"}
@@ -177,7 +173,6 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
                           className="bg-background/50 border-muted focus:border-neon-blue resize-none"
                           placeholder="Observações adicionais (opcional)"
                           rows={3}
-                          disabled={form.formState.isSubmitting}
                         />
                       </FormControl>
                       <FormMessage />
@@ -190,7 +185,7 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
                 <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
                   Cancelar
                 </Button>
-                <Button type="submit" className="flex-1" disabled={form.formState.isSubmitting}>
+                <Button type="submit" className="flex-1">
                   {expense ? 'Atualizar' : 'Cadastrar'}
                 </Button>
               </div>
