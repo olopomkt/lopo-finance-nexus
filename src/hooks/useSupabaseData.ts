@@ -45,6 +45,9 @@ export const useSupabaseData = () => {
         contractType: item.contract_type as 'único' | 'mensal',
         contractMonths: item.contract_months,
         paymentDate: new Date(item.payment_date),
+        accountType: (item.account_type || 'Marlon Lopo') as 'Marlon Lopo' | 'Infinity B2B',
+        received: item.received || false,
+        receivedDate: item.received_date ? new Date(item.received_date) : undefined,
         createdAt: new Date(item.created_at)
       })) || []);
 
@@ -55,6 +58,8 @@ export const useSupabaseData = () => {
         paymentMethod: item.payment_method as 'Pix' | 'Cartão' | 'Outro',
         type: item.type as 'Assinatura' | 'Único',
         paymentDate: new Date(item.payment_date),
+        paid: item.paid || false,
+        paidDate: item.paid_date ? new Date(item.paid_date) : undefined,
         createdAt: new Date(item.created_at)
       })) || []);
 
@@ -64,6 +69,8 @@ export const useSupabaseData = () => {
         price: item.price,
         paymentDate: new Date(item.payment_date),
         observation: item.observation,
+        paid: item.paid || false,
+        paidDate: item.paid_date ? new Date(item.paid_date) : undefined,
         createdAt: new Date(item.created_at)
       })) || []);
 
@@ -92,7 +99,10 @@ export const useSupabaseData = () => {
           payment_method: data.paymentMethod,
           contract_type: data.contractType,
           contract_months: data.contractMonths,
-          payment_date: data.paymentDate.toISOString().split('T')[0]
+          payment_date: data.paymentDate.toISOString().split('T')[0],
+          account_type: data.accountType,
+          received: data.received,
+          received_date: data.receivedDate?.toISOString().split('T')[0]
         })
         .select()
         .single();
@@ -108,6 +118,9 @@ export const useSupabaseData = () => {
         contractType: result.contract_type as 'único' | 'mensal',
         contractMonths: result.contract_months,
         paymentDate: new Date(result.payment_date),
+        accountType: result.account_type as 'Marlon Lopo' | 'Infinity B2B',
+        received: result.received || false,
+        receivedDate: result.received_date ? new Date(result.received_date) : undefined,
         createdAt: new Date(result.created_at)
       };
 
@@ -128,7 +141,9 @@ export const useSupabaseData = () => {
           price: data.price,
           payment_method: data.paymentMethod,
           type: data.type,
-          payment_date: data.paymentDate.toISOString().split('T')[0]
+          payment_date: data.paymentDate.toISOString().split('T')[0],
+          paid: data.paid,
+          paid_date: data.paidDate?.toISOString().split('T')[0]
         })
         .select()
         .single();
@@ -142,6 +157,8 @@ export const useSupabaseData = () => {
         paymentMethod: result.payment_method as 'Pix' | 'Cartão' | 'Outro',
         type: result.type as 'Assinatura' | 'Único',
         paymentDate: new Date(result.payment_date),
+        paid: result.paid || false,
+        paidDate: result.paid_date ? new Date(result.paid_date) : undefined,
         createdAt: new Date(result.created_at)
       };
 
@@ -161,7 +178,9 @@ export const useSupabaseData = () => {
           name: data.name,
           price: data.price,
           payment_date: data.paymentDate.toISOString().split('T')[0],
-          observation: data.observation
+          observation: data.observation,
+          paid: data.paid,
+          paid_date: data.paidDate?.toISOString().split('T')[0]
         })
         .select()
         .single();
@@ -174,6 +193,8 @@ export const useSupabaseData = () => {
         price: result.price,
         paymentDate: new Date(result.payment_date),
         observation: result.observation,
+        paid: result.paid || false,
+        paidDate: result.paid_date ? new Date(result.paid_date) : undefined,
         createdAt: new Date(result.created_at)
       };
 
@@ -196,6 +217,9 @@ export const useSupabaseData = () => {
       if (data.contractType !== undefined) updateData.contract_type = data.contractType;
       if (data.contractMonths !== undefined) updateData.contract_months = data.contractMonths;
       if (data.paymentDate !== undefined) updateData.payment_date = data.paymentDate.toISOString().split('T')[0];
+      if (data.accountType !== undefined) updateData.account_type = data.accountType;
+      if (data.received !== undefined) updateData.received = data.received;
+      if (data.receivedDate !== undefined) updateData.received_date = data.receivedDate?.toISOString().split('T')[0];
 
       const { error } = await supabase
         .from('company_revenues')
@@ -221,6 +245,8 @@ export const useSupabaseData = () => {
       if (data.paymentMethod !== undefined) updateData.payment_method = data.paymentMethod;
       if (data.type !== undefined) updateData.type = data.type;
       if (data.paymentDate !== undefined) updateData.payment_date = data.paymentDate.toISOString().split('T')[0];
+      if (data.paid !== undefined) updateData.paid = data.paid;
+      if (data.paidDate !== undefined) updateData.paid_date = data.paidDate?.toISOString().split('T')[0];
 
       const { error } = await supabase
         .from('company_expenses')
@@ -245,6 +271,8 @@ export const useSupabaseData = () => {
       if (data.price !== undefined) updateData.price = data.price;
       if (data.paymentDate !== undefined) updateData.payment_date = data.paymentDate.toISOString().split('T')[0];
       if (data.observation !== undefined) updateData.observation = data.observation;
+      if (data.paid !== undefined) updateData.paid = data.paid;
+      if (data.paidDate !== undefined) updateData.paid_date = data.paidDate?.toISOString().split('T')[0];
 
       const { error } = await supabase
         .from('personal_expenses')
@@ -294,6 +322,21 @@ export const useSupabaseData = () => {
 
     setPersonalExpenses(prev => prev.filter(item => item.id !== id));
   }, []);
+
+  // Confirmation operations
+  const confirmReceived = useCallback(async (id: string, receivedDate: Date = new Date()) => {
+    await updateRevenue(id, { received: true, receivedDate });
+    toast({ title: "Sucesso", description: "Recebimento confirmado!" });
+  }, [updateRevenue]);
+
+  const confirmPayment = useCallback(async (id: string, type: 'company' | 'personal', paidDate: Date = new Date()) => {
+    if (type === 'company') {
+      await updateCompanyExpense(id, { paid: true, paidDate });
+    } else {
+      await updatePersonalExpense(id, { paid: true, paidDate });
+    }
+    toast({ title: "Sucesso", description: "Pagamento confirmado!" });
+  }, [updateCompanyExpense, updatePersonalExpense]);
 
   // Set up real-time subscriptions
   useEffect(() => {
@@ -364,6 +407,10 @@ export const useSupabaseData = () => {
     deleteRevenue,
     deleteCompanyExpense,
     deletePersonalExpense,
+    
+    // Confirmation operations
+    confirmReceived,
+    confirmPayment,
     
     // Utilities
     fetchAllData

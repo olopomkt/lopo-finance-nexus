@@ -14,6 +14,8 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          paid: boolean | null
+          paid_date: string | null
           payment_date: string
           payment_method: string
           price: number
@@ -24,6 +26,8 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          paid?: boolean | null
+          paid_date?: string | null
           payment_date: string
           payment_method: string
           price: number
@@ -34,6 +38,8 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          paid?: boolean | null
+          paid_date?: string | null
           payment_date?: string
           payment_method?: string
           price?: number
@@ -44,6 +50,7 @@ export type Database = {
       }
       company_revenues: {
         Row: {
+          account_type: string | null
           client_name: string
           contract_months: number | null
           contract_type: string
@@ -52,10 +59,13 @@ export type Database = {
           payment_date: string
           payment_method: string
           price: number
+          received: boolean | null
+          received_date: string | null
           service: string
           updated_at: string
         }
         Insert: {
+          account_type?: string | null
           client_name: string
           contract_months?: number | null
           contract_type: string
@@ -64,10 +74,13 @@ export type Database = {
           payment_date: string
           payment_method: string
           price: number
+          received?: boolean | null
+          received_date?: string | null
           service: string
           updated_at?: string
         }
         Update: {
+          account_type?: string | null
           client_name?: string
           contract_months?: number | null
           contract_type?: string
@@ -76,6 +89,8 @@ export type Database = {
           payment_date?: string
           payment_method?: string
           price?: number
+          received?: boolean | null
+          received_date?: string | null
           service?: string
           updated_at?: string
         }
@@ -87,6 +102,8 @@ export type Database = {
           id: string
           name: string
           observation: string | null
+          paid: boolean | null
+          paid_date: string | null
           payment_date: string
           price: number
           updated_at: string
@@ -96,6 +113,8 @@ export type Database = {
           id?: string
           name: string
           observation?: string | null
+          paid?: boolean | null
+          paid_date?: string | null
           payment_date: string
           price: number
           updated_at?: string
@@ -105,6 +124,8 @@ export type Database = {
           id?: string
           name?: string
           observation?: string | null
+          paid?: boolean | null
+          paid_date?: string | null
           payment_date?: string
           price?: number
           updated_at?: string

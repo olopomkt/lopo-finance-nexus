@@ -8,11 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CalendarIcon, TrendingUp, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { CompanyRevenue, PaymentMethod, ContractType } from '@/types';
+import { CompanyRevenue, PaymentMethod, ContractType, AccountType } from '@/types';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import { useFinanceData } from '@/hooks/useFinanceData';
 import { companyRevenueSchema } from '@/lib/validations';
@@ -32,7 +33,10 @@ export const CompanyRevenueForm = memo(({ revenue, onSave, onCancel }: Props) =>
     paymentMethod: revenue?.paymentMethod || 'Pix' as PaymentMethod,
     contractType: revenue?.contractType || 'único' as ContractType,
     contractMonths: revenue?.contractMonths || 1,
-    paymentDate: revenue?.paymentDate || new Date()
+    paymentDate: revenue?.paymentDate || new Date(),
+    accountType: revenue?.accountType || 'Marlon Lopo' as AccountType,
+    received: revenue?.received || false,
+    receivedDate: revenue?.receivedDate
   });
 
   const { saveRevenue, updateRevenue, isLoading } = useFinanceData();
@@ -142,6 +146,23 @@ export const CompanyRevenueForm = memo(({ revenue, onSave, onCancel }: Props) =>
               </div>
 
               <div className="space-y-2">
+                <Label>Tipo de Conta *</Label>
+                <Select 
+                  value={formData.accountType} 
+                  onValueChange={(value: AccountType) => updateField('accountType', value)}
+                  disabled={isProcessing}
+                >
+                  <SelectTrigger className="bg-background/50 border-muted">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border-muted">
+                    <SelectItem value="Marlon Lopo">Marlon Lopo</SelectItem>
+                    <SelectItem value="Infinity B2B">Infinity B2B</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label>Forma de Pagamento</Label>
                 <Select 
                   value={formData.paymentMethod} 
@@ -227,6 +248,55 @@ export const CompanyRevenueForm = memo(({ revenue, onSave, onCancel }: Props) =>
                 </Popover>
                 {getFieldError('paymentDate') && (
                   <p className="text-sm text-red-500">{getFieldError('paymentDate')}</p>
+                )}
+              </div>
+
+              {/* Confirmação de Recebimento */}
+              <div className="space-y-2 md:col-span-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="received"
+                    checked={formData.received}
+                    onCheckedChange={(checked) => {
+                      updateField('received', checked);
+                      if (checked && !formData.receivedDate) {
+                        updateField('receivedDate', new Date());
+                      } else if (!checked) {
+                        updateField('receivedDate', undefined);
+                      }
+                    }}
+                    disabled={isProcessing}
+                  />
+                  <Label htmlFor="received" className="text-sm font-medium">
+                    Pagamento recebido
+                  </Label>
+                </div>
+
+                {formData.received && (
+                  <div className="ml-6 space-y-2">
+                    <Label>Data de Recebimento</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal bg-background/50 border-muted hover:border-neon-blue"
+                          disabled={isProcessing}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {formData.receivedDate ? format(formData.receivedDate, "PPP", { locale: ptBR }) : "Selecione uma data"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 bg-background border-muted" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={formData.receivedDate}
+                          onSelect={(date) => date && updateField('receivedDate', date)}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                 )}
               </div>
             </div>
