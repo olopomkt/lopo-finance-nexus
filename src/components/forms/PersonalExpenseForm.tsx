@@ -29,7 +29,11 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
   const { savePersonalExpense, updatePersonalExpense } = useFinanceData();
   const [paymentDate, setPaymentDate] = useState<Date>(expense?.paymentDate || new Date());
 
-  const form = useForm({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm({
     resolver: zodResolver(personalExpenseSchema),
     defaultValues: {
       name: expense?.name || '',
@@ -37,8 +41,6 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
       observation: expense?.observation || ''
     }
   });
-
-  const { formState: { errors, isSubmitting } } = form;
 
   const onSubmit = async (data: any) => {
     try {
@@ -86,13 +88,13 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
           </Button>
         </CardHeader>
         <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome da Conta *</Label>
                 <Input
                   id="name"
-                  {...form.register('name')}
+                  {...register('name')}
                   className={cn(
                     "bg-background/50 border-muted focus:border-neon-blue",
                     errors.name && "border-red-500"
@@ -112,7 +114,7 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
                   type="number"
                   step="0.01"
                   min="0"
-                  {...form.register('price')}
+                  {...register('price')}
                   className={cn(
                     "bg-background/50 border-muted focus:border-neon-blue",
                     errors.price && "border-red-500"
@@ -157,7 +159,7 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
                 <Label htmlFor="observation">Observação</Label>
                 <Textarea
                   id="observation"
-                  {...form.register('observation')}
+                  {...register('observation')}
                   className={cn(
                     "bg-background/50 border-muted focus:border-neon-blue resize-none",
                     errors.observation && "border-red-500"
