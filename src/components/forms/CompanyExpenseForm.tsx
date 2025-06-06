@@ -1,14 +1,14 @@
-import { useState } from 'react';
+
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CalendarIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -26,7 +26,6 @@ interface CompanyExpenseFormProps {
 
 export const CompanyExpenseForm = ({ expense, onSave, onCancel }: CompanyExpenseFormProps) => {
   const { saveCompanyExpense, updateCompanyExpense } = useFinanceData();
-  const [paymentDate, setPaymentDate] = useState<Date>(expense?.paymentDate || new Date());
 
   const form = useForm({
     resolver: zodResolver(companyExpenseSchema),
@@ -35,6 +34,7 @@ export const CompanyExpenseForm = ({ expense, onSave, onCancel }: CompanyExpense
       price: expense?.price || 0,
       paymentMethod: expense?.paymentMethod || 'Pix' as PaymentMethod,
       type: expense?.type || 'Único' as ExpenseType,
+      paymentDate: expense?.paymentDate || new Date()
     }
   });
 
@@ -45,7 +45,7 @@ export const CompanyExpenseForm = ({ expense, onSave, onCancel }: CompanyExpense
         price: Number(data.price),
         paymentMethod: data.paymentMethod as PaymentMethod,
         type: data.type as ExpenseType,
-        paymentDate,
+        paymentDate: data.paymentDate,
         paid: expense?.paid || false,
         paidDate: expense?.paidDate
       };
@@ -60,6 +60,7 @@ export const CompanyExpenseForm = ({ expense, onSave, onCancel }: CompanyExpense
       
       onSave();
     } catch (error) {
+      console.error('Form submission error:', error);
       toast({ 
         title: "Erro", 
         description: "Erro ao salvar despesa", 
@@ -85,78 +86,140 @@ export const CompanyExpenseForm = ({ expense, onSave, onCancel }: CompanyExpense
           </Button>
         </CardHeader>
         <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome</Label>
-                <Input id="name" placeholder="Nome da despesa" {...form.register('name')} />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome da Despesa *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          className="bg-background/50 border-muted focus:border-neon-blue"
+                          placeholder="Ex: Software, hospedagem..."
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preço (R$) *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          className="bg-background/50 border-muted focus:border-neon-blue"
+                          placeholder="0.00"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="paymentMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Método de Pagamento</FormLabel>
+                      <FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger className="bg-background/50 border-muted">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border-muted">
+                            <SelectItem value="Pix">Pix</SelectItem>
+                            <SelectItem value="Cartão">Cartão</SelectItem>
+                            <SelectItem value="Outro">Outro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo</FormLabel>
+                      <FormControl>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <SelectTrigger className="bg-background/50 border-muted">
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border-muted">
+                            <SelectItem value="Assinatura">Assinatura</SelectItem>
+                            <SelectItem value="Único">Único</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="paymentDate"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Data de Pagamento</FormLabel>
+                      <FormControl>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal bg-background/50 border-muted hover:border-neon-blue",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {field.value ? format(field.value, "PPP", { locale: ptBR }) : "Selecione uma data"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 bg-background border-muted" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              initialFocus
+                              className="pointer-events-auto"
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Preço</Label>
-                <Input id="price" type="number" placeholder="0.00" {...form.register('price')} />
+
+              <div className="flex gap-4 pt-4">
+                <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+                  Cancelar
+                </Button>
+                <Button type="submit" className="flex-1">
+                  {expense ? 'Atualizar' : 'Cadastrar'}
+                </Button>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="paymentMethod">Método de Pagamento</Label>
-                <Select onValueChange={form.setValue.bind(null, 'paymentMethod')} defaultValue={form.getValues('paymentMethod')}>
-                  <SelectTrigger id="paymentMethod">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Pix">Pix</SelectItem>
-                    <SelectItem value="Cartão">Cartão</SelectItem>
-                    <SelectItem value="Outro">Outro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="type">Tipo</Label>
-                <Select onValueChange={form.setValue.bind(null, 'type')} defaultValue={form.getValues('type')}>
-                  <SelectTrigger id="type">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Assinatura">Assinatura</SelectItem>
-                    <SelectItem value="Único">Único</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Data de Pagamento</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-[240px] justify-start text-left font-normal",
-                        !paymentDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {paymentDate ? format(paymentDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : <span>Selecione a data</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      locale={ptBR}
-                      selected={paymentDate}
-                      onSelect={setPaymentDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-            
-            <div className="flex gap-4 pt-4">
-              <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
-                Cancelar
-              </Button>
-              <Button type="submit" className="flex-1">
-                {expense ? 'Atualizar' : 'Cadastrar'}
-              </Button>
-            </div>
-          </form>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </motion.div>

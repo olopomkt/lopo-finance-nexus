@@ -12,6 +12,37 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 export const FinancialDashboard = () => {
   const { companyRevenues, companyExpenses, personalExpenses } = useFinanceData();
 
+  // Mover monthlyData para fora do dashboardData para evitar useMemo aninhado
+  const monthlyData = useMemo(() => {
+    const months = {};
+    const currentYear = new Date().getFullYear();
+    
+    // Inicializar meses
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(currentYear, i, 1);
+      const monthKey = format(date, 'MMM', { locale: ptBR });
+      months[monthKey] = { month: monthKey, receitas: 0, despesas: 0 };
+    }
+
+    // Adicionar receitas
+    companyRevenues.forEach(revenue => {
+      const monthKey = format(revenue.paymentDate, 'MMM', { locale: ptBR });
+      if (months[monthKey]) {
+        months[monthKey].receitas += revenue.price;
+      }
+    });
+
+    // Adicionar despesas
+    [...companyExpenses, ...personalExpenses].forEach(expense => {
+      const monthKey = format(expense.paymentDate, 'MMM', { locale: ptBR });
+      if (months[monthKey]) {
+        months[monthKey].despesas += expense.price;
+      }
+    });
+
+    return Object.values(months);
+  }, [companyRevenues, companyExpenses, personalExpenses]);
+
   const dashboardData = useMemo(() => {
     // Cálculos básicos
     const totalRevenue = companyRevenues.reduce((sum, item) => sum + item.price, 0);
@@ -47,37 +78,6 @@ export const FinancialDashboard = () => {
       despesas: companyExpenses.filter(e => e.paymentMethod === method).reduce((sum, item) => sum + item.price, 0)
     }));
 
-    // Dados mensais para gráfico de linha
-    const monthlyData = useMemo(() => {
-      const months = {};
-      const currentYear = new Date().getFullYear();
-      
-      // Inicializar meses
-      for (let i = 0; i < 12; i++) {
-        const date = new Date(currentYear, i, 1);
-        const monthKey = format(date, 'MMM', { locale: ptBR });
-        months[monthKey] = { month: monthKey, receitas: 0, despesas: 0 };
-      }
-
-      // Adicionar receitas
-      companyRevenues.forEach(revenue => {
-        const monthKey = format(revenue.paymentDate, 'MMM', { locale: ptBR });
-        if (months[monthKey]) {
-          months[monthKey].receitas += revenue.price;
-        }
-      });
-
-      // Adicionar despesas
-      [...companyExpenses, ...personalExpenses].forEach(expense => {
-        const monthKey = format(expense.paymentDate, 'MMM', { locale: ptBR });
-        if (months[monthKey]) {
-          months[monthKey].despesas += expense.price;
-        }
-      });
-
-      return Object.values(months);
-    }, [companyRevenues, companyExpenses, personalExpenses]);
-
     return {
       totalRevenue,
       totalCompanyExpenses,
@@ -92,8 +92,7 @@ export const FinancialDashboard = () => {
       marlonLopoRevenue,
       infinityB2BRevenue,
       expenseDistribution,
-      paymentMethodData,
-      monthlyData
+      paymentMethodData
     };
   }, [companyRevenues, companyExpenses, personalExpenses]);
 
@@ -273,7 +272,7 @@ export const FinancialDashboard = () => {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={dashboardData.monthlyData}>
+            <LineChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
