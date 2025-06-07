@@ -19,6 +19,9 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				sans: ['Open Sans', 'system-ui', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -97,14 +100,24 @@ export default {
 					'50%': { 
 						boxShadow: '0 0 10px rgba(139, 92, 246, 0.8), 0 0 20px rgba(139, 92, 246, 0.8), 0 0 40px rgba(139, 92, 246, 0.8)' 
 					}
-				}
+				},
+				'star-movement-bottom': {
+					'0%': { transform: 'translate(0%, 0%)', opacity: '1' },
+					'100%': { transform: 'translate(-100%, 0%)', opacity: '0' },
+				},
+				'star-movement-top': {
+					'0%': { transform: 'translate(0%, 0%)', opacity: '1' },
+					'100%': { transform: 'translate(100%, 0%)', opacity: '0' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'glow': 'glow 2s ease-in-out infinite',
 				'float': 'float 3s ease-in-out infinite',
-				'pulse-neon': 'pulse-neon 2s ease-in-out infinite'
+				'pulse-neon': 'pulse-neon 2s ease-in-out infinite',
+				'star-movement-bottom': 'star-movement-bottom linear infinite alternate',
+				'star-movement-top': 'star-movement-top linear infinite alternate',
 			},
 			backgroundImage: {
 				'gradient-neon': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',

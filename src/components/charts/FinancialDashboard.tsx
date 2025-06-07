@@ -6,8 +6,9 @@ import { TrendingUp, TrendingDown, DollarSign, Calendar, CheckCircle, Clock } fr
 import { useFinanceData } from '@/hooks/useFinanceData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { StarBorder } from '@/components/ui/star-border';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+const COLORS = ['#5f5c5d', '#989596', '#adaaab'];
 
 export const FinancialDashboard = () => {
   const { companyRevenues, companyExpenses, personalExpenses } = useFinanceData();
@@ -66,8 +67,8 @@ export const FinancialDashboard = () => {
 
     // Dados para gráfico de pizza - Distribuição de gastos
     const expenseDistribution = [
-      { name: 'Despesas Empresariais', value: totalCompanyExpenses, color: '#FF6B6B' },
-      { name: 'Contas Pessoais', value: totalPersonalExpenses, color: '#4ECDC4' }
+      { name: 'Despesas Empresariais', value: totalCompanyExpenses, color: '#5f5c5d' },
+      { name: 'Contas Pessoais', value: totalPersonalExpenses, color: '#989596' }
     ];
 
     // Dados para gráfico de barras - Por método de pagamento
@@ -102,27 +103,27 @@ export const FinancialDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Cards de Resumo */}
+      {/* Cards de Resumo com StarBorder */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
+        <StarBorder as="div">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium">Receita Total</h3>
             <TrendingUp className="h-4 w-4 text-neon-blue" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div>
             <div className="text-2xl font-bold text-neon-blue">{formatCurrency(dashboardData.totalRevenue)}</div>
             <div className="text-xs text-muted-foreground mt-1">
               <span className="text-green-500">Confirmado: {formatCurrency(dashboardData.receivedRevenue)}</span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </StarBorder>
 
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Despesas Totais</CardTitle>
+        <StarBorder as="div">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium">Despesas Totais</h3>
             <TrendingDown className="h-4 w-4 text-red-400" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div>
             <div className="text-2xl font-bold text-red-400">
               {formatCurrency(dashboardData.totalCompanyExpenses + dashboardData.totalPersonalExpenses)}
             </div>
@@ -131,43 +132,43 @@ export const FinancialDashboard = () => {
                 Pago: {formatCurrency(dashboardData.paidCompanyExpenses + dashboardData.paidPersonalExpenses)}
               </span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </StarBorder>
 
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lucro Líquido</CardTitle>
+        <StarBorder as="div">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium">Lucro Líquido</h3>
             <DollarSign className="h-4 w-4 text-neon-purple" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div>
             <div className={`text-2xl font-bold ${dashboardData.netProfit >= 0 ? 'text-green-500' : 'text-red-400'}`}>
               {formatCurrency(dashboardData.netProfit)}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
               Receitas - Despesas
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </StarBorder>
 
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendências</CardTitle>
+        <StarBorder as="div">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium">Pendências</h3>
             <Clock className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div>
             <div className="text-2xl font-bold text-yellow-500">
               {formatCurrency(dashboardData.pendingRevenue + dashboardData.pendingCompanyExpenses + dashboardData.pendingPersonalExpenses)}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
               A receber/pagar
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </StarBorder>
       </div>
 
-      {/* Cards de Contas */}
+      {/* Cards de Contas com bordas brancas */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
+        <Card className="white-glow-border bg-card/50 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-neon-blue">Receitas por Conta</CardTitle>
           </CardHeader>
@@ -185,7 +186,7 @@ export const FinancialDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
+        <Card className="white-glow-border bg-card/50 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-red-400">Status de Pagamentos</CardTitle>
           </CardHeader>
@@ -214,10 +215,10 @@ export const FinancialDashboard = () => {
         </Card>
       </div>
 
-      {/* Gráficos */}
+      {/* Gráficos com bordas brancas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Gráfico de Pizza - Distribuição de Despesas */}
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
+        <Card className="white-glow-border bg-card/50 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>Distribuição de Despesas</CardTitle>
           </CardHeader>
@@ -235,7 +236,7 @@ export const FinancialDashboard = () => {
                   dataKey="value"
                 >
                   {dashboardData.expenseDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
@@ -245,7 +246,7 @@ export const FinancialDashboard = () => {
         </Card>
 
         {/* Gráfico de Barras - Por Método de Pagamento */}
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
+        <Card className="white-glow-border bg-card/50 backdrop-blur-sm">
           <CardHeader>
             <CardTitle>Receitas vs Despesas por Método</CardTitle>
           </CardHeader>
@@ -257,8 +258,8 @@ export const FinancialDashboard = () => {
                 <YAxis />
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
                 <Legend />
-                <Bar dataKey="receitas" fill="#0088FE" name="Receitas" />
-                <Bar dataKey="despesas" fill="#FF8042" name="Despesas" />
+                <Bar dataKey="receitas" fill="#5f5c5d" name="Receitas" />
+                <Bar dataKey="despesas" fill="#989596" name="Despesas" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -266,7 +267,7 @@ export const FinancialDashboard = () => {
       </div>
 
       {/* Gráfico de Linha - Evolução Mensal */}
-      <Card className="neon-border bg-card/50 backdrop-blur-sm">
+      <Card className="white-glow-border bg-card/50 backdrop-blur-sm">
         <CardHeader>
           <CardTitle>Evolução Mensal - {new Date().getFullYear()}</CardTitle>
         </CardHeader>
@@ -278,8 +279,8 @@ export const FinancialDashboard = () => {
               <YAxis />
               <Tooltip formatter={(value) => formatCurrency(Number(value))} />
               <Legend />
-              <Line type="monotone" dataKey="receitas" stroke="#0088FE" strokeWidth={2} name="Receitas" />
-              <Line type="monotone" dataKey="despesas" stroke="#FF8042" strokeWidth={2} name="Despesas" />
+              <Line type="monotone" dataKey="receitas" stroke="#5f5c5d" strokeWidth={2} name="Receitas" />
+              <Line type="monotone" dataKey="despesas" stroke="#989596" strokeWidth={2} name="Despesas" />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
