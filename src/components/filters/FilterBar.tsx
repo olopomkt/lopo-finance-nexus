@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Filter, X, Calendar as CalendarIcon, ArrowUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { FilterState } from '@/hooks/useFilters';
+import { FilterState } from '@/hooks/useUnifiedFilters';
 
 interface Props {
   filters: FilterState;

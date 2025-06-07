@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
@@ -44,11 +43,11 @@ export const useSupabaseData = () => {
         paymentMethod: item.payment_method as 'Pix' | 'Cartão' | 'Outro',
         contractType: item.contract_type as 'único' | 'mensal',
         contractMonths: item.contract_months,
-        paymentDate: new Date(item.payment_date),
+        paymentDate: item.payment_date,
         accountType: (item.account_type || 'Marlon Lopo') as 'Marlon Lopo' | 'Infinity B2B',
         received: item.received || false,
-        receivedDate: item.received_date ? new Date(item.received_date) : undefined,
-        createdAt: new Date(item.created_at)
+        receivedDate: item.received_date,
+        createdAt: item.created_at
       })) || []);
 
       setCompanyExpenses(companyExpensesResult.data?.map(item => ({
@@ -57,21 +56,21 @@ export const useSupabaseData = () => {
         price: item.price,
         paymentMethod: item.payment_method as 'Pix' | 'Cartão' | 'Outro',
         type: item.type as 'Assinatura' | 'Único',
-        paymentDate: new Date(item.payment_date),
+        paymentDate: item.payment_date,
         paid: item.paid || false,
-        paidDate: item.paid_date ? new Date(item.paid_date) : undefined,
-        createdAt: new Date(item.created_at)
+        paidDate: item.paid_date,
+        createdAt: item.created_at
       })) || []);
 
       setPersonalExpenses(personalExpensesResult.data?.map(item => ({
         id: item.id,
         name: item.name,
         price: item.price,
-        paymentDate: new Date(item.payment_date),
+        paymentDate: item.payment_date,
         observation: item.observation,
         paid: item.paid || false,
-        paidDate: item.paid_date ? new Date(item.paid_date) : undefined,
-        createdAt: new Date(item.created_at)
+        paidDate: item.paid_date,
+        createdAt: item.created_at
       })) || []);
 
     } catch (err: any) {
@@ -87,7 +86,7 @@ export const useSupabaseData = () => {
   }, []);
 
   // Save operations
-  const saveRevenue = useCallback(async (data: Omit<CompanyRevenue, 'id' | 'createdAt'>) => {
+  const saveRevenue = useCallback(async (data: any) => {
     setIsLoading(true);
     try {
       const { data: result, error } = await supabase
@@ -99,10 +98,10 @@ export const useSupabaseData = () => {
           payment_method: data.paymentMethod,
           contract_type: data.contractType,
           contract_months: data.contractMonths,
-          payment_date: data.paymentDate.toISOString().split('T')[0],
+          payment_date: data.paymentDate,
           account_type: data.accountType,
           received: data.received,
-          received_date: data.receivedDate?.toISOString().split('T')[0]
+          received_date: data.receivedDate
         })
         .select()
         .single();
@@ -117,11 +116,11 @@ export const useSupabaseData = () => {
         paymentMethod: result.payment_method as 'Pix' | 'Cartão' | 'Outro',
         contractType: result.contract_type as 'único' | 'mensal',
         contractMonths: result.contract_months,
-        paymentDate: new Date(result.payment_date),
+        paymentDate: result.payment_date,
         accountType: result.account_type as 'Marlon Lopo' | 'Infinity B2B',
         received: result.received || false,
-        receivedDate: result.received_date ? new Date(result.received_date) : undefined,
-        createdAt: new Date(result.created_at)
+        receivedDate: result.received_date,
+        createdAt: result.created_at
       };
 
       setCompanyRevenues(prev => [newRevenue, ...prev]);
@@ -131,7 +130,7 @@ export const useSupabaseData = () => {
     }
   }, []);
 
-  const saveCompanyExpense = useCallback(async (data: Omit<CompanyExpense, 'id' | 'createdAt'>) => {
+  const saveCompanyExpense = useCallback(async (data: any) => {
     setIsLoading(true);
     try {
       const { data: result, error } = await supabase
@@ -141,9 +140,9 @@ export const useSupabaseData = () => {
           price: data.price,
           payment_method: data.paymentMethod,
           type: data.type,
-          payment_date: data.paymentDate.toISOString().split('T')[0],
+          payment_date: data.paymentDate,
           paid: data.paid,
-          paid_date: data.paidDate?.toISOString().split('T')[0]
+          paid_date: data.paidDate
         })
         .select()
         .single();
@@ -156,10 +155,10 @@ export const useSupabaseData = () => {
         price: result.price,
         paymentMethod: result.payment_method as 'Pix' | 'Cartão' | 'Outro',
         type: result.type as 'Assinatura' | 'Único',
-        paymentDate: new Date(result.payment_date),
+        paymentDate: result.payment_date,
         paid: result.paid || false,
-        paidDate: result.paid_date ? new Date(result.paid_date) : undefined,
-        createdAt: new Date(result.created_at)
+        paidDate: result.paid_date,
+        createdAt: result.created_at
       };
 
       setCompanyExpenses(prev => [newExpense, ...prev]);
@@ -169,7 +168,7 @@ export const useSupabaseData = () => {
     }
   }, []);
 
-  const savePersonalExpense = useCallback(async (data: Omit<PersonalExpense, 'id' | 'createdAt'>) => {
+  const savePersonalExpense = useCallback(async (data: any) => {
     setIsLoading(true);
     try {
       const { data: result, error } = await supabase
@@ -177,10 +176,10 @@ export const useSupabaseData = () => {
         .insert({
           name: data.name,
           price: data.price,
-          payment_date: data.paymentDate.toISOString().split('T')[0],
+          payment_date: data.paymentDate,
           observation: data.observation,
           paid: data.paid,
-          paid_date: data.paidDate?.toISOString().split('T')[0]
+          paid_date: data.paidDate
         })
         .select()
         .single();
@@ -191,11 +190,11 @@ export const useSupabaseData = () => {
         id: result.id,
         name: result.name,
         price: result.price,
-        paymentDate: new Date(result.payment_date),
+        paymentDate: result.payment_date,
         observation: result.observation,
         paid: result.paid || false,
-        paidDate: result.paid_date ? new Date(result.paid_date) : undefined,
-        createdAt: new Date(result.created_at)
+        paidDate: result.paid_date,
+        createdAt: result.created_at
       };
 
       setPersonalExpenses(prev => [newExpense, ...prev]);
@@ -206,7 +205,7 @@ export const useSupabaseData = () => {
   }, []);
 
   // Update operations
-  const updateRevenue = useCallback(async (id: string, data: Partial<CompanyRevenue>) => {
+  const updateRevenue = useCallback(async (id: string, data: any) => {
     setIsLoading(true);
     try {
       const updateData: any = {};
@@ -216,10 +215,10 @@ export const useSupabaseData = () => {
       if (data.paymentMethod !== undefined) updateData.payment_method = data.paymentMethod;
       if (data.contractType !== undefined) updateData.contract_type = data.contractType;
       if (data.contractMonths !== undefined) updateData.contract_months = data.contractMonths;
-      if (data.paymentDate !== undefined) updateData.payment_date = data.paymentDate.toISOString().split('T')[0];
+      if (data.paymentDate !== undefined) updateData.payment_date = data.paymentDate;
       if (data.accountType !== undefined) updateData.account_type = data.accountType;
       if (data.received !== undefined) updateData.received = data.received;
-      if (data.receivedDate !== undefined) updateData.received_date = data.receivedDate?.toISOString().split('T')[0];
+      if (data.receivedDate !== undefined) updateData.received_date = data.receivedDate;
 
       const { error } = await supabase
         .from('company_revenues')
@@ -236,7 +235,7 @@ export const useSupabaseData = () => {
     }
   }, []);
 
-  const updateCompanyExpense = useCallback(async (id: string, data: Partial<CompanyExpense>) => {
+  const updateCompanyExpense = useCallback(async (id: string, data: any) => {
     setIsLoading(true);
     try {
       const updateData: any = {};
@@ -244,9 +243,9 @@ export const useSupabaseData = () => {
       if (data.price !== undefined) updateData.price = data.price;
       if (data.paymentMethod !== undefined) updateData.payment_method = data.paymentMethod;
       if (data.type !== undefined) updateData.type = data.type;
-      if (data.paymentDate !== undefined) updateData.payment_date = data.paymentDate.toISOString().split('T')[0];
+      if (data.paymentDate !== undefined) updateData.payment_date = data.paymentDate;
       if (data.paid !== undefined) updateData.paid = data.paid;
-      if (data.paidDate !== undefined) updateData.paid_date = data.paidDate?.toISOString().split('T')[0];
+      if (data.paidDate !== undefined) updateData.paid_date = data.paidDate;
 
       const { error } = await supabase
         .from('company_expenses')
@@ -263,16 +262,16 @@ export const useSupabaseData = () => {
     }
   }, []);
 
-  const updatePersonalExpense = useCallback(async (id: string, data: Partial<PersonalExpense>) => {
+  const updatePersonalExpense = useCallback(async (id: string, data: any) => {
     setIsLoading(true);
     try {
       const updateData: any = {};
       if (data.name !== undefined) updateData.name = data.name;
       if (data.price !== undefined) updateData.price = data.price;
-      if (data.paymentDate !== undefined) updateData.payment_date = data.paymentDate.toISOString().split('T')[0];
+      if (data.paymentDate !== undefined) updateData.payment_date = data.paymentDate;
       if (data.observation !== undefined) updateData.observation = data.observation;
       if (data.paid !== undefined) updateData.paid = data.paid;
-      if (data.paidDate !== undefined) updateData.paid_date = data.paidDate?.toISOString().split('T')[0];
+      if (data.paidDate !== undefined) updateData.paid_date = data.paidDate;
 
       const { error } = await supabase
         .from('personal_expenses')
@@ -325,15 +324,15 @@ export const useSupabaseData = () => {
 
   // Confirmation operations
   const confirmReceived = useCallback(async (id: string, receivedDate: Date = new Date()) => {
-    await updateRevenue(id, { received: true, receivedDate });
+    await updateRevenue(id, { received: true, receivedDate: receivedDate.toISOString().split('T')[0] });
     toast({ title: "Sucesso", description: "Recebimento confirmado!" });
   }, [updateRevenue]);
 
   const confirmPayment = useCallback(async (id: string, type: 'company' | 'personal', paidDate: Date = new Date()) => {
     if (type === 'company') {
-      await updateCompanyExpense(id, { paid: true, paidDate });
+      await updateCompanyExpense(id, { paid: true, paidDate: paidDate.toISOString().split('T')[0] });
     } else {
-      await updatePersonalExpense(id, { paid: true, paidDate });
+      await updatePersonalExpense(id, { paid: true, paidDate: paidDate.toISOString().split('T')[0] });
     }
     toast({ title: "Sucesso", description: "Pagamento confirmado!" });
   }, [updateCompanyExpense, updatePersonalExpense]);

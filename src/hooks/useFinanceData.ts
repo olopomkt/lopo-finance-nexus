@@ -17,43 +17,47 @@ export const useFinanceData = () => {
   };
 
   const updateRevenue = async (id: string, data: Partial<CompanyRevenueFormData>) => {
-    const transformedData = {
-      ...data,
-      paymentDate: data.paymentDate ? dateTransformers.toSupabase(data.paymentDate) : undefined,
-      receivedDate: data.receivedDate ? dateTransformers.toSupabase(data.receivedDate) : undefined
-    };
+    const transformedData: any = { ...data };
+    if (data.paymentDate) {
+      transformedData.paymentDate = dateTransformers.toSupabase(data.paymentDate);
+    }
+    if (data.receivedDate) {
+      transformedData.receivedDate = dateTransformers.toSupabase(data.receivedDate);
+    }
     return supabaseHook.updateRevenue(id, transformedData);
   };
 
   const saveCompanyExpense = async (data: CompanyExpenseFormData) => {
     const transformedData = {
       ...data,
-      paymentDate: dateTransformers.toSupabase(data.paymentDate)
+      paymentDate: dateTransformers.toSupabase(data.paymentDate),
+      paid: false
     };
     return supabaseHook.saveCompanyExpense(transformedData);
   };
 
   const updateCompanyExpense = async (id: string, data: Partial<CompanyExpenseFormData>) => {
-    const transformedData = {
-      ...data,
-      paymentDate: data.paymentDate ? dateTransformers.toSupabase(data.paymentDate) : undefined
-    };
+    const transformedData: any = { ...data };
+    if (data.paymentDate) {
+      transformedData.paymentDate = dateTransformers.toSupabase(data.paymentDate);
+    }
     return supabaseHook.updateCompanyExpense(id, transformedData);
   };
 
   const savePersonalExpense = async (data: PersonalExpenseFormData) => {
     const transformedData = {
       ...data,
-      paymentDate: dateTransformers.toSupabase(data.paymentDate)
+      paymentDate: dateTransformers.toSupabase(data.paymentDate),
+      paid: false
     };
     return supabaseHook.savePersonalExpense(transformedData);
   };
 
   const updatePersonalExpense = async (id: string, data: Partial<PersonalExpenseFormData>) => {
-    const transformedData = {
-      ...data,
-      paymentDate: data.paymentDate ? dateTransformers.toSupabase(data.paymentDate) : undefined
-    };
+    const transformedData: any = { ...data };
+    if (data.paymentDate) {
+      transformedData.paymentDate = dateTransformers.toSupabase(data.paymentDate);
+    }
     return supabaseHook.updatePersonalExpense(id, transformedData);
   };
 
@@ -79,6 +83,27 @@ export const useFinanceData = () => {
     createdAt: new Date(expense.createdAt)
   }));
 
+  // Funções de confirmação com transformação correta
+  const confirmReceived = async (id: string, receivedDate: Date = new Date()) => {
+    await updateRevenue(id, { received: true, receivedDate });
+  };
+
+  const confirmPayment = async (id: string, type: 'company' | 'personal', paidDate: Date = new Date()) => {
+    if (type === 'company') {
+      const transformedData = {
+        paid: true,
+        paidDate: dateTransformers.toSupabase(paidDate)
+      };
+      await supabaseHook.updateCompanyExpense(id, transformedData);
+    } else {
+      const transformedData = {
+        paid: true,
+        paidDate: dateTransformers.toSupabase(paidDate)
+      };
+      await supabaseHook.updatePersonalExpense(id, transformedData);
+    }
+  };
+
   return {
     // Dados transformados
     companyRevenues,
@@ -93,9 +118,14 @@ export const useFinanceData = () => {
     savePersonalExpense,
     updatePersonalExpense,
     
-    // Outras ações do hook original
-    confirmReceived: supabaseHook.confirmReceived,
-    confirmPayment: supabaseHook.confirmPayment,
+    // Funções delete (expostas do hook supabase)
+    deleteRevenue: supabaseHook.deleteRevenue,
+    deleteCompanyExpense: supabaseHook.deleteCompanyExpense,
+    deletePersonalExpense: supabaseHook.deletePersonalExpense,
+    
+    // Outras ações
+    confirmReceived,
+    confirmPayment,
     isLoading: supabaseHook.isLoading,
     error: supabaseHook.error
   };

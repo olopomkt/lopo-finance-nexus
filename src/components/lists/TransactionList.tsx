@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
 import { useFinanceData } from '@/hooks/useFinanceData';
-import { useFilters } from '@/hooks/useFilters';
+import { useUnifiedFilters } from '@/hooks/useUnifiedFilters';
 import { FilterBar } from '@/components/filters/FilterBar';
 import { toast } from '@/hooks/use-toast';
 
@@ -32,10 +33,8 @@ export const TransactionList = ({ onEditRevenue, onEditCompanyExpense, onEditPer
     filters,
     updateFilter,
     clearFilters,
-    filterRevenues,
-    filterCompanyExpenses,
-    filterPersonalExpenses
-  } = useFilters();
+    filterTransactions
+  } = useUnifiedFilters();
 
   const handleDeleteRevenue = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta receita?')) {
@@ -87,9 +86,9 @@ export const TransactionList = ({ onEditRevenue, onEditCompanyExpense, onEditPer
   };
 
   // Apply filters
-  const filteredRevenues = filterRevenues(companyRevenues);
-  const filteredCompanyExpenses = filterCompanyExpenses(companyExpenses);
-  const filteredPersonalExpenses = filterPersonalExpenses(personalExpenses);
+  const filteredRevenues = filterTransactions(companyRevenues, 'revenue');
+  const filteredCompanyExpenses = filterTransactions(companyExpenses, 'expense');
+  const filteredPersonalExpenses = filterTransactions(personalExpenses, 'expense');
 
   return (
     <div className="space-y-6">

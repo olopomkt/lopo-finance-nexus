@@ -9,15 +9,19 @@ export interface BaseTransaction {
   createdAt: Date;
 }
 
-export interface CompanyRevenue extends Omit<BaseTransaction, 'name'> {
+export interface CompanyRevenue {
+  id: string;
   clientName: string;
   service: string;
+  price: number;
+  paymentDate: Date;
   paymentMethod: PaymentMethod;
   contractType: ContractType;
   contractMonths?: number;
   accountType: AccountType;
   received: boolean;
   receivedDate?: Date;
+  createdAt: Date;
 }
 
 export interface CompanyExpense extends BaseTransaction {
