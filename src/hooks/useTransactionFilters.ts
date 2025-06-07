@@ -4,7 +4,7 @@ import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
 import { useFilters } from './useFilters';
 
 export const useTransactionFilters = () => {
-  const filters = useFilters();
+  const filtersHook = useFilters();
 
   const filterTransactions = useMemo(() => {
     return <T extends CompanyRevenue | CompanyExpense | PersonalExpense>(
@@ -14,8 +14,8 @@ export const useTransactionFilters = () => {
       let filtered = [...transactions];
 
       // Filtro de busca por texto
-      if (filters.searchTerm) {
-        const searchLower = filters.searchTerm.toLowerCase();
+      if (filtersHook.filters.searchTerm) {
+        const searchLower = filtersHook.filters.searchTerm.toLowerCase();
         filtered = filtered.filter((transaction) => {
           if ('clientName' in transaction) {
             // CompanyRevenue
@@ -35,25 +35,25 @@ export const useTransactionFilters = () => {
       }
 
       // Filtro de data inicial
-      if (filters.dateFrom) {
+      if (filtersHook.filters.dateFrom) {
         filtered = filtered.filter((transaction) => {
           const transactionDate = new Date(transaction.paymentDate);
-          return transactionDate >= filters.dateFrom!;
+          return transactionDate >= filtersHook.filters.dateFrom!;
         });
       }
 
       // Filtro de data final
-      if (filters.dateTo) {
+      if (filtersHook.filters.dateTo) {
         filtered = filtered.filter((transaction) => {
           const transactionDate = new Date(transaction.paymentDate);
-          return transactionDate <= filters.dateTo!;
+          return transactionDate <= filtersHook.filters.dateTo!;
         });
       }
 
       // Filtro de método de pagamento (apenas para receitas e despesas empresariais)
-      if (filters.paymentMethod && 'paymentMethod' in filtered[0]) {
+      if (filtersHook.filters.paymentMethod && 'paymentMethod' in filtered[0]) {
         filtered = filtered.filter((transaction) => {
-          return (transaction as CompanyRevenue | CompanyExpense).paymentMethod === filters.paymentMethod;
+          return (transaction as CompanyRevenue | CompanyExpense).paymentMethod === filtersHook.filters.paymentMethod;
         });
       }
 
@@ -61,7 +61,7 @@ export const useTransactionFilters = () => {
       filtered.sort((a, b) => {
         let comparison = 0;
         
-        switch (filters.sortBy) {
+        switch (filtersHook.filters.sortBy) {
           case 'date':
             comparison = new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime();
             break;
@@ -77,17 +77,17 @@ export const useTransactionFilters = () => {
             comparison = 0;
         }
         
-        return filters.sortOrder === 'desc' ? -comparison : comparison;
+        return filtersHook.filters.sortOrder === 'desc' ? -comparison : comparison;
       });
 
       return filtered;
     };
-  }, [filters]);
+  }, [filtersHook.filters]);
 
   return {
-    filters,
+    filters: filtersHook.filters,
     filterTransactions,
-    setFilter: filters.setFilter,
-    clearFilters: filters.clearFilters
+    setFilter: filtersHook.updateFilter,
+    clearFilters: filtersHook.clearFilters
   };
 };
