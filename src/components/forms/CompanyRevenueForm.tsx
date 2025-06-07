@@ -32,7 +32,7 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
     defaultValues: {
       clientName: revenue?.clientName || '',
       service: revenue?.service || '',
-      price: revenue?.price || 0,
+      price: revenue?.price?.toString() || '0',
       paymentMethod: revenue?.paymentMethod || 'Pix' as PaymentMethod,
       contractType: revenue?.contractType || 'único' as ContractType,
       contractMonths: revenue?.contractMonths || 1,
@@ -45,11 +45,16 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
 
   const onSubmit = async (data: any) => {
     try {
+      const processedData = {
+        ...data,
+        accountType: data.accountType || 'Marlon Lopo'
+      };
+
       if (revenue) {
-        await updateRevenue(revenue.id, data);
+        await updateRevenue(revenue.id, processedData);
         toast({ title: "Sucesso", description: "Receita atualizada com sucesso!" });
       } else {
-        await saveRevenue(data);
+        await saveRevenue(processedData);
         toast({ title: "Sucesso", description: "Receita cadastrada com sucesso!" });
       }
       onSave();
@@ -123,12 +128,15 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
                   <FormControl>
                     <Input
                       {...field}
-                      type="number"
-                      step="0.01"
-                      min="0"
+                      type="text"
+                      inputMode="decimal"
                       className="bg-background/50 border-muted focus:border-neon-blue"
                       placeholder="0.00"
                       disabled={isLoading}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9.,]/g, '').replace(',', '.');
+                        field.onChange(value);
+                      }}
                     />
                   </FormControl>
                   <FormMessage />

@@ -1,6 +1,12 @@
 
 import { z } from 'zod';
 
+// Helper para transformar string em number
+const numberTransform = z.string().transform((val) => {
+  const num = parseFloat(val);
+  return isNaN(num) ? 0 : num;
+}).pipe(z.number().positive('Preço deve ser positivo'));
+
 // Schema para receita empresarial
 export const companyRevenueSchema = z.object({
   clientName: z.string()
@@ -11,10 +17,7 @@ export const companyRevenueSchema = z.object({
     .min(2, 'Serviço deve ter pelo menos 2 caracteres')
     .max(200, 'Serviço deve ter no máximo 200 caracteres')
     .trim(),
-  price: z.number()
-    .positive('Preço deve ser positivo')
-    .max(999999999.99, 'Preço muito alto')
-    .refine((val) => Number(val.toFixed(2)) === val, 'Preço deve ter no máximo 2 casas decimais'),
+  price: numberTransform,
   paymentMethod: z.enum(['Pix', 'Cartão', 'Outro'], {
     errorMap: () => ({ message: 'Forma de pagamento inválida' })
   }),
@@ -28,7 +31,12 @@ export const companyRevenueSchema = z.object({
     .optional(),
   paymentDate: z.date({
     errorMap: () => ({ message: 'Data de pagamento é obrigatória' })
-  })
+  }),
+  accountType: z.enum(['Marlon Lopo', 'Infinity B2B'], {
+    errorMap: () => ({ message: 'Tipo de conta inválido' })
+  }).optional(),
+  received: z.boolean().optional(),
+  receivedDate: z.date().optional()
 });
 
 // Schema para despesa empresarial
@@ -37,10 +45,7 @@ export const companyExpenseSchema = z.object({
     .min(2, 'Nome do gasto deve ter pelo menos 2 caracteres')
     .max(100, 'Nome do gasto deve ter no máximo 100 caracteres')
     .trim(),
-  price: z.number()
-    .positive('Preço deve ser positivo')
-    .max(999999999.99, 'Preço muito alto')
-    .refine((val) => Number(val.toFixed(2)) === val, 'Preço deve ter no máximo 2 casas decimais'),
+  price: numberTransform,
   paymentMethod: z.enum(['Pix', 'Cartão', 'Outro'], {
     errorMap: () => ({ message: 'Forma de pagamento inválida' })
   }),
@@ -58,10 +63,7 @@ export const personalExpenseSchema = z.object({
     .min(2, 'Nome da conta deve ter pelo menos 2 caracteres')
     .max(100, 'Nome da conta deve ter no máximo 100 caracteres')
     .trim(),
-  price: z.number()
-    .positive('Preço deve ser positivo')
-    .max(999999999.99, 'Preço muito alto')
-    .refine((val) => Number(val.toFixed(2)) === val, 'Preço deve ter no máximo 2 casas decimais'),
+  price: numberTransform,
   paymentDate: z.date({
     errorMap: () => ({ message: 'Data de pagamento é obrigatória' })
   }),
