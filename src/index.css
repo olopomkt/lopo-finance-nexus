@@ -1,39 +1,41 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
+    --background: 0 0% 0%;
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 3.9%;
+    --card: 0 0% 5%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 10% 3.9%;
+    --popover: 0 0% 5%;
     --popover-foreground: 0 0% 98%;
 
     --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
+    --primary-foreground: 0 0% 5%;
 
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 0 0% 10%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 240 3.7% 15.9%;
+    --accent: 0 0% 10%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --border: 0 0% 20%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 83.9%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 }
 
@@ -43,26 +45,20 @@
   }
 
   body {
-    @apply bg-gradient-dark text-foreground;
-    font-family: 'Inter', system-ui, sans-serif;
+    @apply bg-black text-foreground;
+    font-family: 'Open Sans', system-ui, sans-serif;
   }
 }
 
 @layer utilities {
-  .neon-border {
-    border: 2px solid transparent;
-    background: linear-gradient(#0c0c0c, #0c0c0c) padding-box,
-                linear-gradient(135deg, #00D4FF, #8B5CF6) border-box;
-  }
-  
-  .neon-glow {
-    box-shadow: 0 0 20px rgba(0, 212, 255, 0.3),
-                0 0 40px rgba(139, 92, 246, 0.2);
+  .white-border {
+    border: 1px solid #ffffff;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 0 0 40px rgba(255, 255, 255, 0.1);
   }
   
   .glass-effect {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
 }

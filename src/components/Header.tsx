@@ -1,29 +1,30 @@
 
 import { motion } from 'framer-motion';
+import { StarsBackground } from '@/components/ui/stars';
 
 export const Header = () => {
   return (
     <motion.header 
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="glass-effect border-b border-neon-blue/20 p-6"
+      className="relative h-[300px] overflow-hidden"
     >
-      <div className="container mx-auto">
-        <motion.h1 
-          className="text-4xl font-bold bg-gradient-to-r from-neon-blue to-neon-purple bg-clip-text text-transparent"
-          animate={{ 
-            textShadow: [
-              "0 0 20px rgba(0, 212, 255, 0.5)",
-              "0 0 30px rgba(139, 92, 246, 0.8)",
-              "0 0 20px rgba(0, 212, 255, 0.5)"
-            ]
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          LOPO FINANCE
-        </motion.h1>
-        <p className="text-muted-foreground mt-2">Sistema de Controle Financeiro Empresarial e Pessoal</p>
-      </div>
+      <StarsBackground className="absolute inset-0">
+        <div className="relative h-full flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+            className="z-10"
+          >
+            <img 
+              src="/placeholder.svg" 
+              alt="LOPO FINANCE" 
+              className="h-32 w-auto"
+            />
+          </motion.div>
+        </div>
+      </StarsBackground>
     </motion.header>
   );
 };

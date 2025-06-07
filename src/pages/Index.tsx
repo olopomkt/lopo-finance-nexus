@@ -12,6 +12,8 @@ import { CompanyRevenueForm } from '@/components/forms/CompanyRevenueForm';
 import { CompanyExpenseForm } from '@/components/forms/CompanyExpenseForm';
 import { PersonalExpenseForm } from '@/components/forms/PersonalExpenseForm';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
+import { StarBorder } from '@/components/ui/star-border';
+import { Header } from '@/components/Header';
 
 const Index = () => {
   const [activeForm, setActiveForm] = useState<'revenue' | 'company-expense' | 'personal-expense' | null>(null);
@@ -42,17 +44,19 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-black">
+      <Header />
+      
       <div className="container mx-auto px-4 py-8">
         <MotivationalQuotes />
 
         <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-2 mb-8 white-border bg-black">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2 text-white">
               <BarChart3 className="h-4 w-4" />
               Dashboard Financeiro
             </TabsTrigger>
-            <TabsTrigger value="records" className="flex items-center gap-2">
+            <TabsTrigger value="records" className="flex items-center gap-2 text-white">
               <List className="h-4 w-4" />
               Registros
             </TabsTrigger>
@@ -63,49 +67,58 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="records" className="space-y-6">
-            {/* Botões de Ação */}
+            {/* Botões de Ação com StarBorder */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="neon-border bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors cursor-pointer group" onClick={() => setActiveForm('revenue')}>
-                <CardContent className="p-6 text-center">
-                  <div className="flex flex-col items-center space-y-3">
-                    <div className="p-3 rounded-full bg-neon-blue/20 group-hover:bg-neon-blue/30 transition-colors">
-                      <TrendingUp className="h-6 w-6 text-neon-blue" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-neon-blue">Nova Receita</h3>
-                      <p className="text-sm text-muted-foreground">Empresarial</p>
-                    </div>
+              <StarBorder 
+                as="div"
+                color="#2f9832" 
+                className="cursor-pointer w-full" 
+                onClick={() => setActiveForm('revenue')}
+              >
+                <div className="flex flex-col items-center space-y-3 p-2">
+                  <div className="p-3 rounded-full bg-revenue/20">
+                    <TrendingUp className="h-6 w-6 text-revenue" />
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="text-center">
+                    <h3 className="font-semibold text-revenue">Nova Receita</h3>
+                    <p className="text-sm text-muted-foreground">Empresarial</p>
+                  </div>
+                </div>
+              </StarBorder>
 
-              <Card className="neon-border bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors cursor-pointer group" onClick={() => setActiveForm('company-expense')}>
-                <CardContent className="p-6 text-center">
-                  <div className="flex flex-col items-center space-y-3">
-                    <div className="p-3 rounded-full bg-red-400/20 group-hover:bg-red-400/30 transition-colors">
-                      <Building2 className="h-6 w-6 text-red-400" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-red-400">Nova Despesa</h3>
-                      <p className="text-sm text-muted-foreground">Empresarial</p>
-                    </div>
+              <StarBorder 
+                as="div"
+                color="#ff2c2c" 
+                className="cursor-pointer w-full" 
+                onClick={() => setActiveForm('company-expense')}
+              >
+                <div className="flex flex-col items-center space-y-3 p-2">
+                  <div className="p-3 rounded-full bg-expense/20">
+                    <Building2 className="h-6 w-6 text-expense" />
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="text-center">
+                    <h3 className="font-semibold text-expense">Nova Despesa</h3>
+                    <p className="text-sm text-muted-foreground">Empresarial</p>
+                  </div>
+                </div>
+              </StarBorder>
 
-              <Card className="neon-border bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors cursor-pointer group" onClick={() => setActiveForm('personal-expense')}>
-                <CardContent className="p-6 text-center">
-                  <div className="flex flex-col items-center space-y-3">
-                    <div className="p-3 rounded-full bg-neon-purple/20 group-hover:bg-neon-purple/30 transition-colors">
-                      <User className="h-6 w-6 text-neon-purple" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-neon-purple">Nova Conta</h3>
-                      <p className="text-sm text-muted-foreground">Pessoal</p>
-                    </div>
+              <StarBorder 
+                as="div"
+                color="#892cdc" 
+                className="cursor-pointer w-full" 
+                onClick={() => setActiveForm('personal-expense')}
+              >
+                <div className="flex flex-col items-center space-y-3 p-2">
+                  <div className="p-3 rounded-full bg-personal/20">
+                    <User className="h-6 w-6 text-personal" />
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="text-center">
+                    <h3 className="font-semibold text-personal">Nova Conta</h3>
+                    <p className="text-sm text-muted-foreground">Pessoal</p>
+                  </div>
+                </div>
+              </StarBorder>
             </div>
 
             {/* Componente de Registros com Filtros */}
@@ -124,7 +137,7 @@ const Index = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+              className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50"
               onClick={(e) => e.target === e.currentTarget && handleCloseForm()}
             >
               <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -142,7 +155,7 @@ const Index = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+              className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50"
               onClick={(e) => e.target === e.currentTarget && handleCloseForm()}
             >
               <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -160,7 +173,7 @@ const Index = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+              className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50"
               onClick={(e) => e.target === e.currentTarget && handleCloseForm()}
             >
               <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">

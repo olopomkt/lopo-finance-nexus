@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line } from 'recharts';
@@ -6,8 +5,10 @@ import { TrendingUp, TrendingDown, DollarSign, Calendar, CheckCircle, Clock } fr
 import { useFinanceData } from '@/hooks/useFinanceData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { StarBorder } from '@/components/ui/star-border';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+const EXPENSE_COLORS = ['#ff2c2c', '#892cdc'];
+const REVENUE_EXPENSE_COLORS = ['#2f9832', '#ff2c2c'];
 
 export const FinancialDashboard = () => {
   const { companyRevenues, companyExpenses, personalExpenses } = useFinanceData();
@@ -66,8 +67,8 @@ export const FinancialDashboard = () => {
 
     // Dados para gráfico de pizza - Distribuição de gastos
     const expenseDistribution = [
-      { name: 'Despesas Empresariais', value: totalCompanyExpenses, color: '#FF6B6B' },
-      { name: 'Contas Pessoais', value: totalPersonalExpenses, color: '#4ECDC4' }
+      { name: 'Despesas Empresariais', value: totalCompanyExpenses, color: '#ff2c2c' },
+      { name: 'Contas Pessoais', value: totalPersonalExpenses, color: '#892cdc' }
     ];
 
     // Dados para gráfico de barras - Por método de pagamento
@@ -102,92 +103,84 @@ export const FinancialDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Cards de Resumo */}
+      {/* Cards de Resumo com StarBorder */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
-            <TrendingUp className="h-4 w-4 text-neon-blue" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-neon-blue">{formatCurrency(dashboardData.totalRevenue)}</div>
-            <div className="text-xs text-muted-foreground mt-1">
-              <span className="text-green-500">Confirmado: {formatCurrency(dashboardData.receivedRevenue)}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <StarBorder as="div" color="#2f9832" className="w-full">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium">Receita Total</h3>
+            <TrendingUp className="h-4 w-4 text-revenue" />
+          </div>
+          <div className="text-2xl font-bold text-revenue">{formatCurrency(dashboardData.totalRevenue)}</div>
+          <div className="text-xs text-muted-foreground mt-1">
+            <span className="text-green-500">Confirmado: {formatCurrency(dashboardData.receivedRevenue)}</span>
+          </div>
+        </StarBorder>
 
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Despesas Totais</CardTitle>
-            <TrendingDown className="h-4 w-4 text-red-400" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-400">
-              {formatCurrency(dashboardData.totalCompanyExpenses + dashboardData.totalPersonalExpenses)}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              <span className="text-green-500">
-                Pago: {formatCurrency(dashboardData.paidCompanyExpenses + dashboardData.paidPersonalExpenses)}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+        <StarBorder as="div" color="#ff2c2c" className="w-full">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium">Despesas Totais</h3>
+            <TrendingDown className="h-4 w-4 text-expense" />
+          </div>
+          <div className="text-2xl font-bold text-expense">
+            {formatCurrency(dashboardData.totalCompanyExpenses + dashboardData.totalPersonalExpenses)}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            <span className="text-green-500">
+              Pago: {formatCurrency(dashboardData.paidCompanyExpenses + dashboardData.paidPersonalExpenses)}
+            </span>
+          </div>
+        </StarBorder>
 
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lucro Líquido</CardTitle>
-            <DollarSign className="h-4 w-4 text-neon-purple" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${dashboardData.netProfit >= 0 ? 'text-green-500' : 'text-red-400'}`}>
-              {formatCurrency(dashboardData.netProfit)}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              Receitas - Despesas
-            </div>
-          </CardContent>
-        </Card>
+        <StarBorder as="div" color="#892cdc" className="w-full">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium">Lucro Líquido</h3>
+            <DollarSign className="h-4 w-4 text-personal" />
+          </div>
+          <div className={`text-2xl font-bold ${dashboardData.netProfit >= 0 ? 'text-revenue' : 'text-expense'}`}>
+            {formatCurrency(dashboardData.netProfit)}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Receitas - Despesas
+          </div>
+        </StarBorder>
 
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendências</CardTitle>
+        <StarBorder as="div" color="#ffffff" className="w-full">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="text-sm font-medium">Pendências</h3>
             <Clock className="h-4 w-4 text-yellow-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-500">
-              {formatCurrency(dashboardData.pendingRevenue + dashboardData.pendingCompanyExpenses + dashboardData.pendingPersonalExpenses)}
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              A receber/pagar
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="text-2xl font-bold text-yellow-500">
+            {formatCurrency(dashboardData.pendingRevenue + dashboardData.pendingCompanyExpenses + dashboardData.pendingPersonalExpenses)}
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            A receber/pagar
+          </div>
+        </StarBorder>
       </div>
 
       {/* Cards de Contas */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
+        <Card className="white-border bg-black/90">
           <CardHeader>
-            <CardTitle className="text-neon-blue">Receitas por Conta</CardTitle>
+            <CardTitle className="text-revenue">Receitas por Conta</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span>Marlon Lopo</span>
-                <span className="font-bold text-neon-blue">{formatCurrency(dashboardData.marlonLopoRevenue)}</span>
+                <span className="font-bold text-revenue">{formatCurrency(dashboardData.marlonLopoRevenue)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Infinity B2B</span>
-                <span className="font-bold text-neon-purple">{formatCurrency(dashboardData.infinityB2BRevenue)}</span>
+                <span className="font-bold text-personal">{formatCurrency(dashboardData.infinityB2BRevenue)}</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
+        <Card className="white-border bg-black/90">
           <CardHeader>
-            <CardTitle className="text-red-400">Status de Pagamentos</CardTitle>
+            <CardTitle className="text-expense">Status de Pagamentos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -217,7 +210,7 @@ export const FinancialDashboard = () => {
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Gráfico de Pizza - Distribuição de Despesas */}
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
+        <Card className="white-border bg-black/90">
           <CardHeader>
             <CardTitle>Distribuição de Despesas</CardTitle>
           </CardHeader>
@@ -235,7 +228,7 @@ export const FinancialDashboard = () => {
                   dataKey="value"
                 >
                   {dashboardData.expenseDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={EXPENSE_COLORS[index % EXPENSE_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
@@ -245,7 +238,7 @@ export const FinancialDashboard = () => {
         </Card>
 
         {/* Gráfico de Barras - Por Método de Pagamento */}
-        <Card className="neon-border bg-card/50 backdrop-blur-sm">
+        <Card className="white-border bg-black/90">
           <CardHeader>
             <CardTitle>Receitas vs Despesas por Método</CardTitle>
           </CardHeader>
@@ -257,8 +250,8 @@ export const FinancialDashboard = () => {
                 <YAxis />
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
                 <Legend />
-                <Bar dataKey="receitas" fill="#0088FE" name="Receitas" />
-                <Bar dataKey="despesas" fill="#FF8042" name="Despesas" />
+                <Bar dataKey="receitas" fill="#2f9832" name="Receitas" />
+                <Bar dataKey="despesas" fill="#ff2c2c" name="Despesas" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -266,7 +259,7 @@ export const FinancialDashboard = () => {
       </div>
 
       {/* Gráfico de Linha - Evolução Mensal */}
-      <Card className="neon-border bg-card/50 backdrop-blur-sm">
+      <Card className="white-border bg-black/90">
         <CardHeader>
           <CardTitle>Evolução Mensal - {new Date().getFullYear()}</CardTitle>
         </CardHeader>
@@ -278,8 +271,8 @@ export const FinancialDashboard = () => {
               <YAxis />
               <Tooltip formatter={(value) => formatCurrency(Number(value))} />
               <Legend />
-              <Line type="monotone" dataKey="receitas" stroke="#0088FE" strokeWidth={2} name="Receitas" />
-              <Line type="monotone" dataKey="despesas" stroke="#FF8042" strokeWidth={2} name="Despesas" />
+              <Line type="monotone" dataKey="receitas" stroke="#2f9832" strokeWidth={2} name="Receitas" />
+              <Line type="monotone" dataKey="despesas" stroke="#ff2c2c" strokeWidth={2} name="Despesas" />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
