@@ -61,27 +61,10 @@ export const useFinanceData = () => {
     return supabaseHook.updatePersonalExpense(id, transformedData);
   };
 
-  // Transformar dados recebidos do Supabase
-  const companyRevenues = supabaseHook.companyRevenues.map(revenue => ({
-    ...revenue,
-    paymentDate: dateTransformers.fromSupabase(revenue.paymentDate),
-    receivedDate: revenue.receivedDate ? dateTransformers.fromSupabase(revenue.receivedDate) : undefined,
-    createdAt: new Date(revenue.createdAt)
-  }));
-
-  const companyExpenses = supabaseHook.companyExpenses.map(expense => ({
-    ...expense,
-    paymentDate: dateTransformers.fromSupabase(expense.paymentDate),
-    paidDate: expense.paidDate ? dateTransformers.fromSupabase(expense.paidDate) : undefined,
-    createdAt: new Date(expense.createdAt)
-  }));
-
-  const personalExpenses = supabaseHook.personalExpenses.map(expense => ({
-    ...expense,
-    paymentDate: dateTransformers.fromSupabase(expense.paymentDate),
-    paidDate: expense.paidDate ? dateTransformers.fromSupabase(expense.paidDate) : undefined,
-    createdAt: new Date(expense.createdAt)
-  }));
+  // Transformar dados recebidos do Supabase - já vêm transformados do useSupabaseData
+  const companyRevenues = supabaseHook.companyRevenues;
+  const companyExpenses = supabaseHook.companyExpenses;
+  const personalExpenses = supabaseHook.personalExpenses;
 
   // Funções de confirmação com transformação correta
   const confirmReceived = async (id: string, receivedDate: Date = new Date()) => {
@@ -105,7 +88,7 @@ export const useFinanceData = () => {
   };
 
   return {
-    // Dados transformados
+    // Dados já transformados
     companyRevenues,
     companyExpenses,
     personalExpenses,

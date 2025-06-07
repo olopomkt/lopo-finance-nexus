@@ -1,7 +1,9 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
 import { toast } from '@/hooks/use-toast';
+import { dateTransformers } from '@/lib/dateUtils';
 
 export const useSupabaseData = () => {
   const [companyRevenues, setCompanyRevenues] = useState<CompanyRevenue[]>([]);
@@ -35,6 +37,7 @@ export const useSupabaseData = () => {
       if (companyExpensesResult.error) throw companyExpensesResult.error;
       if (personalExpensesResult.error) throw personalExpensesResult.error;
 
+      // Transform data with proper date conversion
       setCompanyRevenues(revenuesResult.data?.map(item => ({
         id: item.id,
         clientName: item.client_name,
@@ -43,11 +46,12 @@ export const useSupabaseData = () => {
         paymentMethod: item.payment_method as 'Pix' | 'Cartão' | 'Outro',
         contractType: item.contract_type as 'único' | 'mensal',
         contractMonths: item.contract_months,
-        paymentDate: item.payment_date,
+        paymentDate: dateTransformers.fromSupabase(item.payment_date),
         accountType: (item.account_type || 'Marlon Lopo') as 'Marlon Lopo' | 'Infinity B2B',
         received: item.received || false,
-        receivedDate: item.received_date,
-        createdAt: item.created_at
+        receivedDate: item.received_date ? dateTransformers.fromSupabase(item.received_date) : undefined,
+        createdAt: new Date(item.created_at),
+        paid: false // CompanyRevenue não tem paid, mas o tipo base tem
       })) || []);
 
       setCompanyExpenses(companyExpensesResult.data?.map(item => ({
@@ -56,21 +60,21 @@ export const useSupabaseData = () => {
         price: item.price,
         paymentMethod: item.payment_method as 'Pix' | 'Cartão' | 'Outro',
         type: item.type as 'Assinatura' | 'Único',
-        paymentDate: item.payment_date,
+        paymentDate: dateTransformers.fromSupabase(item.payment_date),
         paid: item.paid || false,
-        paidDate: item.paid_date,
-        createdAt: item.created_at
+        paidDate: item.paid_date ? dateTransformers.fromSupabase(item.paid_date) : undefined,
+        createdAt: new Date(item.created_at)
       })) || []);
 
       setPersonalExpenses(personalExpensesResult.data?.map(item => ({
         id: item.id,
         name: item.name,
         price: item.price,
-        paymentDate: item.payment_date,
+        paymentDate: dateTransformers.fromSupabase(item.payment_date),
         observation: item.observation,
         paid: item.paid || false,
-        paidDate: item.paid_date,
-        createdAt: item.created_at
+        paidDate: item.paid_date ? dateTransformers.fromSupabase(item.paid_date) : undefined,
+        createdAt: new Date(item.created_at)
       })) || []);
 
     } catch (err: any) {
@@ -116,11 +120,12 @@ export const useSupabaseData = () => {
         paymentMethod: result.payment_method as 'Pix' | 'Cartão' | 'Outro',
         contractType: result.contract_type as 'único' | 'mensal',
         contractMonths: result.contract_months,
-        paymentDate: result.payment_date,
+        paymentDate: dateTransformers.fromSupabase(result.payment_date),
         accountType: result.account_type as 'Marlon Lopo' | 'Infinity B2B',
         received: result.received || false,
-        receivedDate: result.received_date,
-        createdAt: result.created_at
+        receivedDate: result.received_date ? dateTransformers.fromSupabase(result.received_date) : undefined,
+        createdAt: new Date(result.created_at),
+        paid: false
       };
 
       setCompanyRevenues(prev => [newRevenue, ...prev]);
@@ -155,10 +160,10 @@ export const useSupabaseData = () => {
         price: result.price,
         paymentMethod: result.payment_method as 'Pix' | 'Cartão' | 'Outro',
         type: result.type as 'Assinatura' | 'Único',
-        paymentDate: result.payment_date,
+        paymentDate: dateTransformers.fromSupabase(result.payment_date),
         paid: result.paid || false,
-        paidDate: result.paid_date,
-        createdAt: result.created_at
+        paidDate: result.paid_date ? dateTransformers.fromSupabase(result.paid_date) : undefined,
+        createdAt: new Date(result.created_at)
       };
 
       setCompanyExpenses(prev => [newExpense, ...prev]);
@@ -190,11 +195,11 @@ export const useSupabaseData = () => {
         id: result.id,
         name: result.name,
         price: result.price,
-        paymentDate: result.payment_date,
+        paymentDate: dateTransformers.fromSupabase(result.payment_date),
         observation: result.observation,
         paid: result.paid || false,
-        paidDate: result.paid_date,
-        createdAt: result.created_at
+        paidDate: result.paid_date ? dateTransformers.fromSupabase(result.paid_date) : undefined,
+        createdAt: new Date(result.created_at)
       };
 
       setPersonalExpenses(prev => [newExpense, ...prev]);
@@ -324,15 +329,15 @@ export const useSupabaseData = () => {
 
   // Confirmation operations
   const confirmReceived = useCallback(async (id: string, receivedDate: Date = new Date()) => {
-    await updateRevenue(id, { received: true, receivedDate: receivedDate.toISOString().split('T')[0] });
+    await updateRevenue(id, { received: true, receivedDate: dateTransformers.toSupabase(receivedDate) });
     toast({ title: "Sucesso", description: "Recebimento confirmado!" });
   }, [updateRevenue]);
 
   const confirmPayment = useCallback(async (id: string, type: 'company' | 'personal', paidDate: Date = new Date()) => {
     if (type === 'company') {
-      await updateCompanyExpense(id, { paid: true, paidDate: paidDate.toISOString().split('T')[0] });
+      await updateCompanyExpense(id, { paid: true, paidDate: dateTransformers.toSupabase(paidDate) });
     } else {
-      await updatePersonalExpense(id, { paid: true, paidDate: paidDate.toISOString().split('T')[0] });
+      await updatePersonalExpense(id, { paid: true, paidDate: dateTransformers.toSupabase(paidDate) });
     }
     toast({ title: "Sucesso", description: "Pagamento confirmado!" });
   }, [updateCompanyExpense, updatePersonalExpense]);
