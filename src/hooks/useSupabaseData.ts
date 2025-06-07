@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
@@ -50,8 +49,7 @@ export const useSupabaseData = () => {
         accountType: (item.account_type || 'Marlon Lopo') as 'Marlon Lopo' | 'Infinity B2B',
         received: item.received || false,
         receivedDate: item.received_date ? dateTransformers.fromSupabase(item.received_date) : undefined,
-        createdAt: new Date(item.created_at),
-        paid: false // CompanyRevenue não tem paid, mas o tipo base tem
+        createdAt: dateTransformers.fromSupabase(item.created_at)
       })) || []);
 
       setCompanyExpenses(companyExpensesResult.data?.map(item => ({
@@ -63,7 +61,7 @@ export const useSupabaseData = () => {
         paymentDate: dateTransformers.fromSupabase(item.payment_date),
         paid: item.paid || false,
         paidDate: item.paid_date ? dateTransformers.fromSupabase(item.paid_date) : undefined,
-        createdAt: new Date(item.created_at)
+        createdAt: dateTransformers.fromSupabase(item.created_at)
       })) || []);
 
       setPersonalExpenses(personalExpensesResult.data?.map(item => ({
@@ -74,7 +72,7 @@ export const useSupabaseData = () => {
         observation: item.observation,
         paid: item.paid || false,
         paidDate: item.paid_date ? dateTransformers.fromSupabase(item.paid_date) : undefined,
-        createdAt: new Date(item.created_at)
+        createdAt: dateTransformers.fromSupabase(item.created_at)
       })) || []);
 
     } catch (err: any) {
@@ -124,8 +122,7 @@ export const useSupabaseData = () => {
         accountType: result.account_type as 'Marlon Lopo' | 'Infinity B2B',
         received: result.received || false,
         receivedDate: result.received_date ? dateTransformers.fromSupabase(result.received_date) : undefined,
-        createdAt: new Date(result.created_at),
-        paid: false
+        createdAt: dateTransformers.fromSupabase(result.created_at)
       };
 
       setCompanyRevenues(prev => [newRevenue, ...prev]);
@@ -163,7 +160,7 @@ export const useSupabaseData = () => {
         paymentDate: dateTransformers.fromSupabase(result.payment_date),
         paid: result.paid || false,
         paidDate: result.paid_date ? dateTransformers.fromSupabase(result.paid_date) : undefined,
-        createdAt: new Date(result.created_at)
+        createdAt: dateTransformers.fromSupabase(result.created_at)
       };
 
       setCompanyExpenses(prev => [newExpense, ...prev]);
@@ -199,7 +196,7 @@ export const useSupabaseData = () => {
         observation: result.observation,
         paid: result.paid || false,
         paidDate: result.paid_date ? dateTransformers.fromSupabase(result.paid_date) : undefined,
-        createdAt: new Date(result.created_at)
+        createdAt: dateTransformers.fromSupabase(result.created_at)
       };
 
       setPersonalExpenses(prev => [newExpense, ...prev]);
