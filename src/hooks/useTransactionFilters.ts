@@ -51,7 +51,7 @@ export const useTransactionFilters = () => {
       }
 
       // Filtro de método de pagamento (apenas para receitas e despesas empresariais)
-      if (filtersHook.filters.paymentMethod && 'paymentMethod' in filtered[0]) {
+      if (filtersHook.filters.paymentMethod && filtered.length > 0 && 'paymentMethod' in filtered[0]) {
         filtered = filtered.filter((transaction) => {
           return (transaction as CompanyRevenue | CompanyExpense).paymentMethod === filtersHook.filters.paymentMethod;
         });
