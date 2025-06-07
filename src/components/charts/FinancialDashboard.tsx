@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line } from 'recharts';
@@ -7,27 +6,37 @@ import { useFinanceData } from '@/hooks/useFinanceData';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { StarBorder } from '@/components/ui/star-border';
-
 const COLORS = ['#5f5c5d', '#989596', '#adaaab'];
-
 export const FinancialDashboard = () => {
-  const { companyRevenues, companyExpenses, personalExpenses } = useFinanceData();
+  const {
+    companyRevenues,
+    companyExpenses,
+    personalExpenses
+  } = useFinanceData();
 
   // Mover monthlyData para fora do dashboardData para evitar useMemo aninhado
   const monthlyData = useMemo(() => {
     const months = {};
     const currentYear = new Date().getFullYear();
-    
+
     // Inicializar meses
     for (let i = 0; i < 12; i++) {
       const date = new Date(currentYear, i, 1);
-      const monthKey = format(date, 'MMM', { locale: ptBR });
-      months[monthKey] = { month: monthKey, receitas: 0, despesas: 0 };
+      const monthKey = format(date, 'MMM', {
+        locale: ptBR
+      });
+      months[monthKey] = {
+        month: monthKey,
+        receitas: 0,
+        despesas: 0
+      };
     }
 
     // Adicionar receitas
     companyRevenues.forEach(revenue => {
-      const monthKey = format(revenue.paymentDate, 'MMM', { locale: ptBR });
+      const monthKey = format(revenue.paymentDate, 'MMM', {
+        locale: ptBR
+      });
       if (months[monthKey]) {
         months[monthKey].receitas += revenue.price;
       }
@@ -35,15 +44,15 @@ export const FinancialDashboard = () => {
 
     // Adicionar despesas
     [...companyExpenses, ...personalExpenses].forEach(expense => {
-      const monthKey = format(expense.paymentDate, 'MMM', { locale: ptBR });
+      const monthKey = format(expense.paymentDate, 'MMM', {
+        locale: ptBR
+      });
       if (months[monthKey]) {
         months[monthKey].despesas += expense.price;
       }
     });
-
     return Object.values(months);
   }, [companyRevenues, companyExpenses, personalExpenses]);
-
   const dashboardData = useMemo(() => {
     // Cálculos básicos
     const totalRevenue = companyRevenues.reduce((sum, item) => sum + item.price, 0);
@@ -66,10 +75,15 @@ export const FinancialDashboard = () => {
     const infinityB2BRevenue = companyRevenues.filter(r => r.accountType === 'Infinity B2B').reduce((sum, item) => sum + item.price, 0);
 
     // Dados para gráfico de pizza - Distribuição de gastos
-    const expenseDistribution = [
-      { name: 'Despesas Empresariais', value: totalCompanyExpenses, color: '#5f5c5d' },
-      { name: 'Contas Pessoais', value: totalPersonalExpenses, color: '#989596' }
-    ];
+    const expenseDistribution = [{
+      name: 'Despesas Empresariais',
+      value: totalCompanyExpenses,
+      color: '#5f5c5d'
+    }, {
+      name: 'Contas Pessoais',
+      value: totalPersonalExpenses,
+      color: '#989596'
+    }];
 
     // Dados para gráfico de barras - Por método de pagamento
     const paymentMethods = ['Pix', 'Cartão', 'Outro'];
@@ -78,7 +92,6 @@ export const FinancialDashboard = () => {
       receitas: companyRevenues.filter(r => r.paymentMethod === method).reduce((sum, item) => sum + item.price, 0),
       despesas: companyExpenses.filter(e => e.paymentMethod === method).reduce((sum, item) => sum + item.price, 0)
     }));
-
     return {
       totalRevenue,
       totalCompanyExpenses,
@@ -96,13 +109,13 @@ export const FinancialDashboard = () => {
       paymentMethodData
     };
   }, [companyRevenues, companyExpenses, personalExpenses]);
-
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Cards de Resumo com StarBorder */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StarBorder as="div">
@@ -111,9 +124,9 @@ export const FinancialDashboard = () => {
             <TrendingUp className="h-4 w-4 text-neon-blue" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-neon-blue">{formatCurrency(dashboardData.totalRevenue)}</div>
+            <div className="text-2xl font-bold text-green-500">{formatCurrency(dashboardData.totalRevenue)}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              <span className="text-green-500">Confirmado: {formatCurrency(dashboardData.receivedRevenue)}</span>
+              <span className="text-zinc-400">Confirmado: {formatCurrency(dashboardData.receivedRevenue)}</span>
             </div>
           </div>
         </StarBorder>
@@ -124,11 +137,11 @@ export const FinancialDashboard = () => {
             <TrendingDown className="h-4 w-4 text-red-400" />
           </div>
           <div>
-            <div className="text-2xl font-bold text-red-400">
+            <div className="text-2xl font-bold text-red-600">
               {formatCurrency(dashboardData.totalCompanyExpenses + dashboardData.totalPersonalExpenses)}
             </div>
             <div className="text-xs text-muted-foreground mt-1">
-              <span className="text-green-500">
+              <span className="text-zinc-400 ">
                 Pago: {formatCurrency(dashboardData.paidCompanyExpenses + dashboardData.paidPersonalExpenses)}
               </span>
             </div>
@@ -159,7 +172,7 @@ export const FinancialDashboard = () => {
             <div className="text-2xl font-bold text-yellow-500">
               {formatCurrency(dashboardData.pendingRevenue + dashboardData.pendingCompanyExpenses + dashboardData.pendingPersonalExpenses)}
             </div>
-            <div className="text-xs text-muted-foreground mt-1">
+            <div className="text-xs text-zinc-400 mt-1">
               A receber/pagar
             </div>
           </div>
@@ -225,21 +238,13 @@ export const FinancialDashboard = () => {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
-                <Pie
-                  data={dashboardData.expenseDistribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {dashboardData.expenseDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
+                <Pie data={dashboardData.expenseDistribution} cx="50%" cy="50%" labelLine={false} label={({
+                name,
+                percent
+              }) => `${name} ${(percent * 100).toFixed(0)}%`} outerRadius={80} fill="#8884d8" dataKey="value">
+                  {dashboardData.expenseDistribution.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                 </Pie>
-                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Tooltip formatter={value => formatCurrency(Number(value))} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -256,7 +261,7 @@ export const FinancialDashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                <Tooltip formatter={value => formatCurrency(Number(value))} />
                 <Legend />
                 <Bar dataKey="receitas" fill="#5f5c5d" name="Receitas" />
                 <Bar dataKey="despesas" fill="#989596" name="Despesas" />
@@ -277,7 +282,7 @@ export const FinancialDashboard = () => {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
-              <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+              <Tooltip formatter={value => formatCurrency(Number(value))} />
               <Legend />
               <Line type="monotone" dataKey="receitas" stroke="#5f5c5d" strokeWidth={2} name="Receitas" />
               <Line type="monotone" dataKey="despesas" stroke="#989596" strokeWidth={2} name="Despesas" />
@@ -285,6 +290,5 @@ export const FinancialDashboard = () => {
           </ResponsiveContainer>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
