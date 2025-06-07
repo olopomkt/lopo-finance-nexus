@@ -3,12 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TrendingUp, Edit, CheckCircle } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { CompanyRevenue } from '@/types';
+import { CompanyRevenue } from '@/types/finance';
 import { useFinanceData } from '@/hooks/useFinanceData';
-import { useTransactionFilters } from '@/hooks/useTransactionFilters';
+import { useUnifiedFilters } from '@/hooks/useUnifiedFilters';
 import { FilterBar } from '@/components/filters/FilterBar';
+import { dateTransformers, formatCurrency } from '@/lib/dateUtils';
 import { toast } from '@/hooks/use-toast';
 
 interface Props {
@@ -17,17 +16,17 @@ interface Props {
 
 export const RevenueList = ({ onEdit }: Props) => {
   const { companyRevenues, confirmReceived } = useFinanceData();
-  const { filters, filterTransactions, setFilter, clearFilters } = useTransactionFilters();
+  const { filters, filterTransactions, updateFilter, clearFilters } = useUnifiedFilters();
 
   const filteredRevenues = filterTransactions(companyRevenues, 'revenue');
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-  };
 
   const handleConfirmReceived = async (id: string) => {
     try {
       await confirmReceived(id);
+      toast({
+        title: "Sucesso",
+        description: "Recebimento confirmado com sucesso!",
+      });
     } catch (error) {
       toast({
         title: "Erro",
@@ -48,7 +47,7 @@ export const RevenueList = ({ onEdit }: Props) => {
 
       <FilterBar
         filters={filters}
-        onFilterChange={setFilter}
+        onFilterChange={updateFilter}
         onClearFilters={clearFilters}
         showPaymentMethodFilter={true}
       />
@@ -91,7 +90,7 @@ export const RevenueList = ({ onEdit }: Props) => {
                   </div>
                   <div>
                     <span className="text-muted-foreground">Data:</span>
-                    <p>{format(revenue.paymentDate, 'dd/MM/yyyy', { locale: ptBR })}</p>
+                    <p>{dateTransformers.formatDisplay(revenue.paymentDate)}</p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Conta:</span>

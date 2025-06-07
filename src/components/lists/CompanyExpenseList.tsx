@@ -3,12 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building2, Edit, CheckCircle } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { CompanyExpense } from '@/types';
+import { CompanyExpense } from '@/types/finance';
 import { useFinanceData } from '@/hooks/useFinanceData';
-import { useTransactionFilters } from '@/hooks/useTransactionFilters';
+import { useUnifiedFilters } from '@/hooks/useUnifiedFilters';
 import { FilterBar } from '@/components/filters/FilterBar';
+import { dateTransformers, formatCurrency } from '@/lib/dateUtils';
 import { toast } from '@/hooks/use-toast';
 
 interface Props {
@@ -17,17 +16,17 @@ interface Props {
 
 export const CompanyExpenseList = ({ onEdit }: Props) => {
   const { companyExpenses, confirmPayment } = useFinanceData();
-  const { filters, filterTransactions, setFilter, clearFilters } = useTransactionFilters();
+  const { filters, filterTransactions, updateFilter, clearFilters } = useUnifiedFilters();
 
   const filteredExpenses = filterTransactions(companyExpenses, 'expense');
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-  };
 
   const handleConfirmPayment = async (id: string) => {
     try {
       await confirmPayment(id, 'company');
+      toast({
+        title: "Sucesso",
+        description: "Pagamento confirmado com sucesso!",
+      });
     } catch (error) {
       toast({
         title: "Erro",
@@ -48,7 +47,7 @@ export const CompanyExpenseList = ({ onEdit }: Props) => {
 
       <FilterBar
         filters={filters}
-        onFilterChange={setFilter}
+        onFilterChange={updateFilter}
         onClearFilters={clearFilters}
         showPaymentMethodFilter={true}
       />
@@ -67,7 +66,9 @@ export const CompanyExpenseList = ({ onEdit }: Props) => {
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <CardTitle className="text-lg text-red-400">{expense.name}</CardTitle>
-                    <p className="text-sm text-muted-foreground">{expense.type}</p>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>{expense.type}</span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant={expense.paid ? "default" : "secondary"} className="text-xs">
@@ -91,7 +92,7 @@ export const CompanyExpenseList = ({ onEdit }: Props) => {
                   </div>
                   <div>
                     <span className="text-muted-foreground">Data:</span>
-                    <p>{format(expense.paymentDate, 'dd/MM/yyyy', { locale: ptBR })}</p>
+                    <p>{dateTransformers.formatDisplay(expense.paymentDate)}</p>
                   </div>
                 </div>
                 {!expense.paid && (

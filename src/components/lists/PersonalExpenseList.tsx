@@ -3,12 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { User, Edit, CheckCircle } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { PersonalExpense } from '@/types';
+import { PersonalExpense } from '@/types/finance';
 import { useFinanceData } from '@/hooks/useFinanceData';
-import { useTransactionFilters } from '@/hooks/useTransactionFilters';
+import { useUnifiedFilters } from '@/hooks/useUnifiedFilters';
 import { FilterBar } from '@/components/filters/FilterBar';
+import { dateTransformers, formatCurrency } from '@/lib/dateUtils';
 import { toast } from '@/hooks/use-toast';
 
 interface Props {
@@ -17,17 +16,17 @@ interface Props {
 
 export const PersonalExpenseList = ({ onEdit }: Props) => {
   const { personalExpenses, confirmPayment } = useFinanceData();
-  const { filters, filterTransactions, setFilter, clearFilters } = useTransactionFilters();
+  const { filters, filterTransactions, updateFilter, clearFilters } = useUnifiedFilters();
 
   const filteredExpenses = filterTransactions(personalExpenses, 'expense');
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-  };
 
   const handleConfirmPayment = async (id: string) => {
     try {
       await confirmPayment(id, 'personal');
+      toast({
+        title: "Sucesso",
+        description: "Pagamento confirmado com sucesso!",
+      });
     } catch (error) {
       toast({
         title: "Erro",
@@ -48,7 +47,7 @@ export const PersonalExpenseList = ({ onEdit }: Props) => {
 
       <FilterBar
         filters={filters}
-        onFilterChange={setFilter}
+        onFilterChange={updateFilter}
         onClearFilters={clearFilters}
         showPaymentMethodFilter={false}
       />
@@ -89,7 +88,7 @@ export const PersonalExpenseList = ({ onEdit }: Props) => {
                   </div>
                   <div>
                     <span className="text-muted-foreground">Data:</span>
-                    <p>{format(expense.paymentDate, 'dd/MM/yyyy', { locale: ptBR })}</p>
+                    <p>{dateTransformers.formatDisplay(expense.paymentDate)}</p>
                   </div>
                 </div>
                 {!expense.paid && (

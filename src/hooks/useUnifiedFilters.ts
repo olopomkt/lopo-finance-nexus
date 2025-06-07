@@ -1,21 +1,50 @@
 
-import { useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
-import { useFilters } from './useFilters';
 
-export const useTransactionFilters = () => {
-  const filtersHook = useFilters();
+export interface FilterState {
+  searchTerm: string;
+  dateFrom: Date | null;
+  dateTo: Date | null;
+  paymentMethod: string | null;
+  sortBy: 'date' | 'price' | 'name';
+  sortOrder: 'asc' | 'desc';
+}
+
+const initialFilters: FilterState = {
+  searchTerm: '',
+  dateFrom: null,
+  dateTo: null,
+  paymentMethod: null,
+  sortBy: 'date',
+  sortOrder: 'desc'
+};
+
+type TransactionType = CompanyRevenue | CompanyExpense | PersonalExpense;
+
+export const useUnifiedFilters = () => {
+  const [filters, setFilters] = useState<FilterState>(initialFilters);
+
+  const updateFilter = useCallback((key: keyof FilterState, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setFilters(initialFilters);
+  }, []);
 
   const filterTransactions = useMemo(() => {
-    return <T extends CompanyRevenue | CompanyExpense | PersonalExpense>(
+    return <T extends TransactionType>(
       transactions: T[],
       type: 'revenue' | 'expense'
     ): T[] => {
+      if (!transactions.length) return [];
+
       let filtered = [...transactions];
 
       // Filtro de busca por texto
-      if (filtersHook.filters.searchTerm) {
-        const searchLower = filtersHook.filters.searchTerm.toLowerCase();
+      if (filters.searchTerm) {
+        const searchLower = filters.searchTerm.toLowerCase();
         filtered = filtered.filter((transaction) => {
           if ('clientName' in transaction) {
             // CompanyRevenue
@@ -35,25 +64,25 @@ export const useTransactionFilters = () => {
       }
 
       // Filtro de data inicial
-      if (filtersHook.filters.dateFrom) {
+      if (filters.dateFrom) {
         filtered = filtered.filter((transaction) => {
           const transactionDate = new Date(transaction.paymentDate);
-          return transactionDate >= filtersHook.filters.dateFrom!;
+          return transactionDate >= filters.dateFrom!;
         });
       }
 
       // Filtro de data final
-      if (filtersHook.filters.dateTo) {
+      if (filters.dateTo) {
         filtered = filtered.filter((transaction) => {
           const transactionDate = new Date(transaction.paymentDate);
-          return transactionDate <= filtersHook.filters.dateTo!;
+          return transactionDate <= filters.dateTo!;
         });
       }
 
       // Filtro de método de pagamento (apenas para receitas e despesas empresariais)
-      if (filtersHook.filters.paymentMethod && filtered.length > 0 && 'paymentMethod' in filtered[0]) {
+      if (filters.paymentMethod && filtered.length > 0 && 'paymentMethod' in filtered[0]) {
         filtered = filtered.filter((transaction) => {
-          return (transaction as CompanyRevenue | CompanyExpense).paymentMethod === filtersHook.filters.paymentMethod;
+          return (transaction as CompanyRevenue | CompanyExpense).paymentMethod === filters.paymentMethod;
         });
       }
 
@@ -61,7 +90,7 @@ export const useTransactionFilters = () => {
       filtered.sort((a, b) => {
         let comparison = 0;
         
-        switch (filtersHook.filters.sortBy) {
+        switch (filters.sortBy) {
           case 'date':
             comparison = new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime();
             break;
@@ -77,17 +106,17 @@ export const useTransactionFilters = () => {
             comparison = 0;
         }
         
-        return filtersHook.filters.sortOrder === 'desc' ? -comparison : comparison;
+        return filters.sortOrder === 'desc' ? -comparison : comparison;
       });
 
       return filtered;
     };
-  }, [filtersHook.filters]);
+  }, [filters]);
 
   return {
-    filters: filtersHook.filters,
+    filters,
     filterTransactions,
-    setFilter: filtersHook.updateFilter,
-    clearFilters: filtersHook.clearFilters
+    updateFilter,
+    clearFilters
   };
 };
