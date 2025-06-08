@@ -2,6 +2,10 @@
 import type { Config } from "tailwindcss";
 
 export default {
+	safelist: [
+    'animate-shine',
+    'animate-pulseGlow',
+  ],
 	darkMode: ["class"],
 	content: [
 		"./pages/**/*.{ts,tsx}",
