@@ -14,7 +14,7 @@ export function StarBorder<T extends ElementType = "button">({
   as,
   className,
   color,
-  speed = "6s",
+  speed = "5s",
   children,
   ...props
 }: StarBorderProps<T> & Omit<ComponentPropsWithoutRef<T>, keyof StarBorderProps<T>>) {
@@ -24,7 +24,7 @@ export function StarBorder<T extends ElementType = "button">({
   return (
     <Component 
       className={cn(
-        "relative inline-block p-[3px] overflow-hidden rounded-[20px]",
+        "relative inline-block p-[2px] overflow-hidden rounded-[20px]",
         className
       )} 
       {...props}
@@ -50,7 +50,7 @@ export function StarBorder<T extends ElementType = "button">({
         }}
       />
       <div className={cn(
-        "relative z-1 border-2 text-foreground text-center text-base py-4 px-6 rounded-[20px]",
+        "relative z-1 border-2.5 text-foreground text-center text-base py-4 px-6 rounded-[20px]",
         "bg-gradient-to-b from-neutral-950 to-neutral-900 border-white flex flex-col items-center justify-center"
       )}>
         {children}

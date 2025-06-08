@@ -21,6 +21,7 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ['Open Sans', 'system-ui', 'sans-serif'],
+				florence: ['MADE Florence Sans', 'serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -102,12 +103,12 @@ export default {
 					}
 				},
 				'star-movement-bottom': {
-					'0%': { transform: 'translate(0%, 0%)', opacity: '1' },
+					'10%': { transform: 'translate(0%, 0%)', opacity: '1' },
 					'100%': { transform: 'translate(-100%, 0%)', opacity: '0' },
 				},
 				'star-movement-top': {
-					'0%': { transform: 'translate(0%, 0%)', opacity: '1' },
-					'100%': { transform: 'translate(100%, 0%)', opacity: '0' },
+					'100%': { transform: 'translate(0%, 0%)', opacity: '1' },
+					'10%': { transform: 'translate(100%, 0%)', opacity: '0' },
 				},
 			},
 			animation: {

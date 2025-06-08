@@ -18,7 +18,7 @@ export const Header = () => {
       <div className="relative">
         <StarsBackground className="flex w-full h-[650px] justify-center items-center">
           <div className="flex flex-col w-full h-full justify-center items-center">
-            <div className="font-sans font-bold text-7xl text-[#444444] text-center">
+            <div className="font-florence font-normal text-7xl text-[#444444] text-center">
               FINANCE CONTROL
             </div>
             <div className="font-montserrat italic text-lg text-[#444444] mt-4 tracking-wider text-center">
@@ -27,12 +27,12 @@ export const Header = () => {
           </div>
         </StarsBackground>
         
-        {/* Imagem do buraco negro sobreposta */}
+        {/* Imagem do buraco negro sobreposta - aumentada para 200% */}
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 z-10">
           <img 
             src="/lovable-uploads/0f9579c4-e6ad-4aab-800e-e273a39c0b37.png" 
             alt="Buraco Negro" 
-            className="w-auto h-auto max-w-full"
+            className="w-auto h-auto max-w-full scale-[2]"
           />
         </div>
       </div>
