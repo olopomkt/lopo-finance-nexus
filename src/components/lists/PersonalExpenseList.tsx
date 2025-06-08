@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,23 +9,17 @@ import { useUnifiedFilters } from '@/hooks/useUnifiedFilters';
 import { FilterBar } from '@/components/filters/FilterBar';
 import { dateTransformers, formatCurrency } from '@/lib/dateUtils';
 import { toast } from '@/hooks/use-toast';
+
 interface Props {
   onEdit: (expense: PersonalExpense) => void;
 }
-export const PersonalExpenseList = ({
-  onEdit
-}: Props) => {
-  const {
-    personalExpenses,
-    confirmPayment
-  } = useFinanceData();
-  const {
-    filters,
-    filterTransactions,
-    updateFilter,
-    clearFilters
-  } = useUnifiedFilters();
+
+export const PersonalExpenseList = ({ onEdit }: Props) => {
+  const { personalExpenses, confirmPayment } = useFinanceData();
+  const { filters, filterTransactions, updateFilter, clearFilters } = useUnifiedFilters();
+  
   const filteredExpenses = filterTransactions(personalExpenses, 'expense');
+
   const handleConfirmPayment = async (id: string) => {
     try {
       await confirmPayment(id, 'personal');
@@ -40,7 +35,9 @@ export const PersonalExpenseList = ({
       });
     }
   };
-  return <div className="space-y-6">
+
+  return (
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold flex items-center gap-2 text-neutral-300">
           <User className="h-6 w-6" />
@@ -51,11 +48,15 @@ export const PersonalExpenseList = ({
       <FilterBar filters={filters} onFilterChange={updateFilter} onClearFilters={clearFilters} showPaymentMethodFilter={false} />
 
       <div className="grid gap-4">
-        {filteredExpenses.length === 0 ? <Card className="neon-border bg-card/50 backdrop-blur-sm">
+        {filteredExpenses.length === 0 ? (
+          <Card className="border-2 border-white bg-card/50 backdrop-blur-sm">
             <CardContent className="p-6 text-center">
               <p className="text-muted-foreground">Nenhuma conta encontrada</p>
             </CardContent>
-          </Card> : filteredExpenses.map(expense => <Card key={expense.id} className="neon-border bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors">
+          </Card>
+        ) : (
+          filteredExpenses.map((expense) => (
+            <Card key={expense.id} className="border-2 border-white bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
@@ -83,14 +84,24 @@ export const PersonalExpenseList = ({
                     <p>{dateTransformers.formatDisplay(expense.paymentDate)}</p>
                   </div>
                 </div>
-                {!expense.paid && <div className="mt-4 flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => handleConfirmPayment(expense.id)} className="text-green-500 border-green-500 hover:bg-green-500/10">
+                {!expense.paid && (
+                  <div className="mt-4 flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleConfirmPayment(expense.id)}
+                      className="text-green-500 border-green-500 hover:bg-green-500/10"
+                    >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Confirmar Pagamento
                     </Button>
-                  </div>}
+                  </div>
+                )}
               </CardContent>
-            </Card>)}
+            </Card>
+          ))
+        )}
       </div>
-    </div>;
+    </div>
+  );
 };

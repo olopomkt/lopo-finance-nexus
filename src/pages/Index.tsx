@@ -1,10 +1,11 @@
+
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, BarChart3, List, Building2, User, TrendingUp } from 'lucide-react';
-import { MotivationalQuotes } from '@/components/MotivationalQuotes';
+import { Header } from '@/components/Header';
 import { FinancialDashboard } from '@/components/charts/FinancialDashboard';
 import { RecordsView } from '@/components/RecordsView';
 import { CompanyRevenueForm } from '@/components/forms/CompanyRevenueForm';
@@ -12,35 +13,42 @@ import { CompanyExpenseForm } from '@/components/forms/CompanyExpenseForm';
 import { PersonalExpenseForm } from '@/components/forms/PersonalExpenseForm';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
 import { StarBorder } from '@/components/ui/star-border';
+
 const Index = () => {
   const [activeForm, setActiveForm] = useState<'revenue' | 'company-expense' | 'personal-expense' | null>(null);
   const [editingRevenue, setEditingRevenue] = useState<CompanyRevenue | undefined>();
   const [editingCompanyExpense, setEditingCompanyExpense] = useState<CompanyExpense | undefined>();
   const [editingPersonalExpense, setEditingPersonalExpense] = useState<PersonalExpense | undefined>();
+
   const handleCloseForm = () => {
     setActiveForm(null);
     setEditingRevenue(undefined);
     setEditingCompanyExpense(undefined);
     setEditingPersonalExpense(undefined);
   };
+
   const handleEditRevenue = (revenue: CompanyRevenue) => {
     setEditingRevenue(revenue);
     setActiveForm('revenue');
   };
+
   const handleEditCompanyExpense = (expense: CompanyExpense) => {
     setEditingCompanyExpense(expense);
     setActiveForm('company-expense');
   };
+
   const handleEditPersonalExpense = (expense: PersonalExpense) => {
     setEditingPersonalExpense(expense);
     setActiveForm('personal-expense');
   };
-  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container mx-auto px-4 py-8">
-        <MotivationalQuotes />
 
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <Header />
+      
+      <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8 white-glow-border">
+          <TabsList className="grid w-full grid-cols-2 mb-8 border-2 border-white">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Dashboard Financeiro
@@ -96,7 +104,7 @@ const Index = () => {
             </div>
 
             {/* Componente de Registros com bordas brancas */}
-            <div className="white-glow-border rounded-lg p-4">
+            <div className="border-2 border-white rounded-lg p-4">
               <RecordsView onEditRevenue={handleEditRevenue} onEditCompanyExpense={handleEditCompanyExpense} onEditPersonalExpense={handleEditPersonalExpense} />
             </div>
           </TabsContent>
@@ -104,43 +112,51 @@ const Index = () => {
 
         {/* Formulários Modais */}
         <AnimatePresence>
-          {activeForm === 'revenue' && <motion.div initial={{
-          opacity: 0
-        }} animate={{
-          opacity: 1
-        }} exit={{
-          opacity: 0
-        }} className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={e => e.target === e.currentTarget && handleCloseForm()}>
+          {activeForm === 'revenue' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+              onClick={(e) => e.target === e.currentTarget && handleCloseForm()}
+            >
               <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <CompanyRevenueForm revenue={editingRevenue} onSave={handleCloseForm} onCancel={handleCloseForm} />
               </div>
-            </motion.div>}
+            </motion.div>
+          )}
 
-          {activeForm === 'company-expense' && <motion.div initial={{
-          opacity: 0
-        }} animate={{
-          opacity: 1
-        }} exit={{
-          opacity: 0
-        }} className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={e => e.target === e.currentTarget && handleCloseForm()}>
+          {activeForm === 'company-expense' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+              onClick={(e) => e.target === e.currentTarget && handleCloseForm()}
+            >
               <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <CompanyExpenseForm expense={editingCompanyExpense} onSave={handleCloseForm} onCancel={handleCloseForm} />
               </div>
-            </motion.div>}
+            </motion.div>
+          )}
 
-          {activeForm === 'personal-expense' && <motion.div initial={{
-          opacity: 0
-        }} animate={{
-          opacity: 1
-        }} exit={{
-          opacity: 0
-        }} className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={e => e.target === e.currentTarget && handleCloseForm()}>
+          {activeForm === 'personal-expense' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+              onClick={(e) => e.target === e.currentTarget && handleCloseForm()}
+            >
               <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <PersonalExpenseForm expense={editingPersonalExpense} onSave={handleCloseForm} onCancel={handleCloseForm} />
               </div>
-            </motion.div>}
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Index;

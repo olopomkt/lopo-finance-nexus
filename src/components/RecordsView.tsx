@@ -20,7 +20,7 @@ export const RecordsView = ({
   return (
     <div className="space-y-6">
       <Tabs defaultValue="revenues" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 white-glow-border">
+        <TabsList className="grid w-full grid-cols-3 border-2 border-white">
           <TabsTrigger value="revenues" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Receitas
@@ -36,19 +36,19 @@ export const RecordsView = ({
         </TabsList>
 
         <TabsContent value="revenues" className="mt-6">
-          <div className="white-glow-border rounded-lg p-4">
+          <div className="border-2 border-white rounded-lg p-4">
             <RevenueList onEdit={onEditRevenue} />
           </div>
         </TabsContent>
 
         <TabsContent value="company-expenses" className="mt-6">
-          <div className="white-glow-border rounded-lg p-4">
+          <div className="border-2 border-white rounded-lg p-4">
             <CompanyExpenseList onEdit={onEditCompanyExpense} />
           </div>
         </TabsContent>
 
         <TabsContent value="personal-expenses" className="mt-6">
-          <div className="white-glow-border rounded-lg p-4">
+          <div className="border-2 border-white rounded-lg p-4">
             <PersonalExpenseList onEdit={onEditPersonalExpense} />
           </div>
         </TabsContent>

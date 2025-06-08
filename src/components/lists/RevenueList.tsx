@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,23 +9,17 @@ import { useUnifiedFilters } from '@/hooks/useUnifiedFilters';
 import { FilterBar } from '@/components/filters/FilterBar';
 import { dateTransformers, formatCurrency } from '@/lib/dateUtils';
 import { toast } from '@/hooks/use-toast';
+
 interface Props {
   onEdit: (revenue: CompanyRevenue) => void;
 }
-export const RevenueList = ({
-  onEdit
-}: Props) => {
-  const {
-    companyRevenues,
-    confirmReceived
-  } = useFinanceData();
-  const {
-    filters,
-    filterTransactions,
-    updateFilter,
-    clearFilters
-  } = useUnifiedFilters();
+
+export const RevenueList = ({ onEdit }: Props) => {
+  const { companyRevenues, confirmReceived } = useFinanceData();
+  const { filters, filterTransactions, updateFilter, clearFilters } = useUnifiedFilters();
+  
   const filteredRevenues = filterTransactions(companyRevenues, 'revenue');
+
   const handleConfirmReceived = async (id: string) => {
     try {
       await confirmReceived(id);
@@ -40,7 +35,9 @@ export const RevenueList = ({
       });
     }
   };
-  return <div className="space-y-6">
+
+  return (
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl flex items-center gap-2 font-bold text-neutral-300">
           <TrendingUp className="h-6 w-6" />
@@ -51,11 +48,15 @@ export const RevenueList = ({
       <FilterBar filters={filters} onFilterChange={updateFilter} onClearFilters={clearFilters} showPaymentMethodFilter={true} />
 
       <div className="grid gap-4">
-        {filteredRevenues.length === 0 ? <Card className="neon-border bg-card/50 backdrop-blur-sm">
+        {filteredRevenues.length === 0 ? (
+          <Card className="border-2 border-white bg-card/50 backdrop-blur-sm">
             <CardContent className="p-6 text-center">
               <p className="text-muted-foreground">Nenhuma receita encontrada</p>
             </CardContent>
-          </Card> : filteredRevenues.map(revenue => <Card key={revenue.id} className="neon-border bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors">
+          </Card>
+        ) : (
+          filteredRevenues.map((revenue) => (
+            <Card key={revenue.id} className="border-2 border-white bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
@@ -91,14 +92,24 @@ export const RevenueList = ({
                     <p>{revenue.accountType}</p>
                   </div>
                 </div>
-                {!revenue.received && <div className="mt-4 flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => handleConfirmReceived(revenue.id)} className="text-green-500 border-green-500 hover:bg-green-500/10">
+                {!revenue.received && (
+                  <div className="mt-4 flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleConfirmReceived(revenue.id)}
+                      className="text-green-500 border-green-500 hover:bg-green-500/10"
+                    >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Confirmar Recebimento
                     </Button>
-                  </div>}
+                  </div>
+                )}
               </CardContent>
-            </Card>)}
+            </Card>
+          ))
+        )}
       </div>
-    </div>;
+    </div>
+  );
 };
