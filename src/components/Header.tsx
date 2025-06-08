@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { StarsBackground } from '@/components/ui/stars';
+import { ShinyText } from "@/components/ui/shiny-text";
 
 export const Header = () => {
   return (
@@ -19,8 +20,13 @@ export const Header = () => {
         <div className="font-florence font-normal text-7xl text-[#444444] text-center">
           FINANCE CONTROL
         </div>
-        <div className="font-montserrat italic text-lg text-[#444444] mt-4 tracking-wider text-center">
-          MARLON LOPO
+        <div className="mt-4">
+          <ShinyText
+            text="MARLON LOPO"
+            className="font-montserrat italic text-lg tracking-wider text-center"
+            speed={4}
+          />
+        </div>
         </div>
       </div>
     </div>
