@@ -15,7 +15,7 @@ export const Header = () => {
       />
 
       {/* Texto acima do buraco negro */}
-      <div className="relative z-20 flex flex-col items-center mt-0">
+      <div className="relative z-20 flex flex-col items-center mt-40">
         <div className="font-florence font-normal text-7xl text-[#444444] text-center">
           FINANCE CONTROL
         </div>
