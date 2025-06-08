@@ -12,7 +12,7 @@ export const Header = () => {
               FINANCE CONTROL
             </div>
             <div className="font-montserrat italic text-lg text-[#444444] mt-4 tracking-wider text-center">
-              M A R L O N  L O P O
+              MARLON LOPO
             </div>
           </div>
         </StarsBackground>
