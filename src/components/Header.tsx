@@ -11,8 +11,7 @@ export const Header = () => {
       <img
         src="/lovable-uploads/0f9579c4-e6ad-4aab-800e-e273a39c0b37.png"
         alt="Buraco Negro"
-        className="mx-auto w-[600px] max-w-none absolute bottom-[-60px] left-1/2 -translate-x-1/2 pointer-events-none select-none opacity-80"
-    draggable={false}
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1600px] h-auto max-w-none opacity-90 z-10 pointer-events-none"
       />
 
       {/* Texto acima do buraco negro */}
