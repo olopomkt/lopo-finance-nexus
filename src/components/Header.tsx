@@ -4,16 +4,6 @@ import { StarsBackground } from '@/components/ui/stars';
 
 export const Header = () => {
   return (
-    <div className="relative">
-      {/* Espaço de 300px com fundo preto e logo */}
-      <div className="bg-black h-[300px] relative flex items-center justify-center">
-        <img 
-          src="/lovable-uploads/e98ea35f-8b93-4e6b-8564-21b6de4a5dfb.png" 
-          alt="Logo" 
-          className="max-h-[200px] w-auto z-10 relative"
-        />
-      </div>
-
       {/* Background Stars com altura de 650px e conteúdo sobreposto */}
       <div className="relative">
         <StarsBackground className="flex w-full h-[650px] justify-center items-center">
@@ -22,7 +12,7 @@ export const Header = () => {
               FINANCE CONTROL
             </div>
             <div className="font-montserrat italic text-lg text-[#444444] mt-4 tracking-wider text-center">
-              MARLON LOPO
+              M A R L O N  L O P O
             </div>
           </div>
         </StarsBackground>
