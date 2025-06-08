@@ -54,14 +54,14 @@ export const PersonalExpenseList = ({ onEdit }: Props) => {
 
       <div className="grid gap-4">
         {filteredExpenses.length === 0 ? (
-          <Card className="neon-border bg-card/50 backdrop-blur-sm">
+          <Card className="white-glow-border bg-card/50 backdrop-blur-sm">
             <CardContent className="p-6 text-center">
               <p className="text-muted-foreground">Nenhuma conta encontrada</p>
             </CardContent>
           </Card>
         ) : (
           filteredExpenses.map((expense) => (
-            <Card key={expense.id} className="neon-border bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors">
+            <Card key={expense.id} className="white-glow-border bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">

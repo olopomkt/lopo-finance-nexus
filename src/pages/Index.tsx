@@ -115,14 +115,12 @@ const Index = () => {
               </StarBorder>
             </div>
 
-            {/* Componente de Registros com bordas brancas */}
-            <div className="white-glow-border rounded-lg p-4">
-              <RecordsView
-                onEditRevenue={handleEditRevenue}
-                onEditCompanyExpense={handleEditCompanyExpense}
-                onEditPersonalExpense={handleEditPersonalExpense}
-              />
-            </div>
+            {/* Componente de Registros */}
+            <RecordsView
+              onEditRevenue={handleEditRevenue}
+              onEditCompanyExpense={handleEditCompanyExpense}
+              onEditPersonalExpense={handleEditPersonalExpense}
+            />
           </TabsContent>
         </Tabs>
 
