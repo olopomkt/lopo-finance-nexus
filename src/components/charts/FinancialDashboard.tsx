@@ -120,8 +120,8 @@ export const FinancialDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StarBorder as="div">
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Receita Total</h3>
-            <TrendingUp className="h-4 w-4 text-neon-blue" />
+            <h3 className="text-xl font-bold">Receita Total</h3>
+            <TrendingUp className="h-4 w-4 text-white" />
           </div>
           <div>
             <div className="text-2xl font-bold text-green-500">{formatCurrency(dashboardData.totalRevenue)}</div>
@@ -133,8 +133,8 @@ export const FinancialDashboard = () => {
 
         <StarBorder as="div">
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Despesas Totais</h3>
-            <TrendingDown className="h-4 w-4 text-red-400" />
+            <h3 className="font-bold text-xl">Despesas Totais</h3>
+            <TrendingDown className="h-4 w-4 text-white" />
           </div>
           <div>
             <div className="text-2xl font-bold text-red-600">
@@ -150,8 +150,8 @@ export const FinancialDashboard = () => {
 
         <StarBorder as="div">
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Lucro Líquido</h3>
-            <DollarSign className="h-4 w-4 text-neon-purple" />
+            <h3 className="text-xl font-bold">Lucro Líquido</h3>
+            <DollarSign className="h-4 w-4 text-white" />
           </div>
           <div>
             <div className={`text-2xl font-bold ${dashboardData.netProfit >= 0 ? 'text-green-500' : 'text-red-400'}`}>
@@ -165,8 +165,8 @@ export const FinancialDashboard = () => {
 
         <StarBorder as="div">
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium">Pendências</h3>
-            <Clock className="h-4 w-4 text-yellow-500" />
+            <h3 className="text-xl font-bold">Pendências</h3>
+            <Clock className="h-4 w-4 text-white" />
           </div>
           <div>
             <div className="text-2xl font-bold text-yellow-500">
@@ -183,17 +183,17 @@ export const FinancialDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="white-glow-border bg-card/50 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-neon-blue">Receitas por Conta</CardTitle>
+            <CardTitle className="text-zinc-300 font-bold">Receitas por Conta</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span>Marlon Lopo</span>
-                <span className="font-bold text-neon-blue">{formatCurrency(dashboardData.marlonLopoRevenue)}</span>
+                <span className="font-bold text-green-500">{formatCurrency(dashboardData.marlonLopoRevenue)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Infinity B2B</span>
-                <span className="font-bold text-neon-purple">{formatCurrency(dashboardData.infinityB2BRevenue)}</span>
+                <span className="font-bold text-green-400">{formatCurrency(dashboardData.infinityB2BRevenue)}</span>
               </div>
             </div>
           </CardContent>
@@ -201,7 +201,7 @@ export const FinancialDashboard = () => {
 
         <Card className="white-glow-border bg-card/50 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-red-400">Status de Pagamentos</CardTitle>
+            <CardTitle className="text-zinc-300">Status de Pagamentos</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
