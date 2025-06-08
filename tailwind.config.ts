@@ -110,6 +110,11 @@ export default {
 					'100%': { transform: 'translate(0%, 0%)', opacity: '1' },
 					'10%': { transform: 'translate(100%, 0%)', opacity: '0' },
 				},
+				'shine': {
+  					'0%': { 'background-position': '100%' },
+  					'100%': { 'background-position': '-100%' },
+				},
+
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -119,6 +124,7 @@ export default {
 				'pulse-neon': 'pulse-neon 2s ease-in-out infinite',
 				'star-movement-bottom': 'star-movement-bottom linear infinite alternate',
 				'star-movement-top': 'star-movement-top linear infinite alternate',
+				'shine': 'shine 5s linear infinite',
 			},
 			backgroundImage: {
 				'gradient-neon': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
