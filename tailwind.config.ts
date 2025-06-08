@@ -114,6 +114,14 @@ export default {
   					'0%': { 'background-position': '100%' },
   					'100%': { 'background-position': '-100%' },
 				},
+				'pulseGlow': {
+        				'0%, 100%': {
+          				filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.4))',
+        				},
+        				'50%': {
+          				filter: 'drop-shadow(0 0 40px rgba(255, 255, 255, 0.9))',
+        				},
+      				},
 
 			},
 			animation: {
@@ -125,6 +133,7 @@ export default {
 				'star-movement-bottom': 'star-movement-bottom linear infinite alternate',
 				'star-movement-top': 'star-movement-top linear infinite alternate',
 				'shine': 'shine 5s linear infinite',
+				pulseGlow: 'pulseGlow 3.5s ease-in-out infinite'
 			},
 			backgroundImage: {
 				'gradient-neon': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
