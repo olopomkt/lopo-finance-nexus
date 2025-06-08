@@ -46,9 +46,9 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <Header />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4">
         <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-8 border-2 border-white">
+          <TabsList className="grid w-full grid-cols-2 border-[2.5px] border-white">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Dashboard Financeiro
@@ -59,11 +59,11 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard" className="space-y-6">
+          <TabsContent value="dashboard" className="space-y-6 mt-6">
             <FinancialDashboard />
           </TabsContent>
 
-          <TabsContent value="records" className="space-y-6">
+          <TabsContent value="records" className="space-y-6 mt-6">
             {/* Botões de Ação com StarBorder */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <StarBorder as="div" className="cursor-pointer" onClick={() => setActiveForm('revenue')}>
@@ -71,7 +71,7 @@ const Index = () => {
                   <div className="p-3 rounded-full bg-zinc-600/20 group-hover:bg-zinc-400/30 transition-colors">
                     <TrendingUp className="h-6 w-6 text-zinc-100" />
                   </div>
-                  <div>
+                  <div className="text-center">
                     <h3 className="font-semibold text-green-600">Nova Receita</h3>
                     <p className="text-sm text-muted-foreground">Empresarial</p>
                   </div>
@@ -83,7 +83,7 @@ const Index = () => {
                   <div className="p-3 rounded-full bg-zinc-600/20 group-hover:bg-zinc-400/30 transition-colors">
                     <Building2 className="h-6 w-6 text-zinc-100" />
                   </div>
-                  <div>
+                  <div className="text-center">
                     <h3 className="font-semibold text-red-400">Nova Despesa</h3>
                     <p className="text-sm text-muted-foreground">Empresarial</p>
                   </div>
@@ -95,7 +95,7 @@ const Index = () => {
                   <div className="p-3 rounded-full bg-zinc-600/20 group-hover:bg-zinc-400/30 transition-colors">
                     <User className="h-6 w-6 text-zinc-100" />
                   </div>
-                  <div>
+                  <div className="text-center">
                     <h3 className="font-semibold text-neon-purple">Nova Conta</h3>
                     <p className="text-sm text-muted-foreground">Pessoal</p>
                   </div>
@@ -104,7 +104,7 @@ const Index = () => {
             </div>
 
             {/* Componente de Registros com bordas brancas */}
-            <div className="border-2 border-white rounded-lg p-4">
+            <div className="border-[2.5px] border-white rounded-lg p-4">
               <RecordsView onEditRevenue={handleEditRevenue} onEditCompanyExpense={handleEditCompanyExpense} onEditPersonalExpense={handleEditPersonalExpense} />
             </div>
           </TabsContent>

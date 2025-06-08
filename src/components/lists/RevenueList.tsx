@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -49,14 +48,14 @@ export const RevenueList = ({ onEdit }: Props) => {
 
       <div className="grid gap-4">
         {filteredRevenues.length === 0 ? (
-          <Card className="border-2 border-white bg-card/50 backdrop-blur-sm">
+          <Card className="border-[2.5px] border-white bg-card/50 backdrop-blur-sm">
             <CardContent className="p-6 text-center">
               <p className="text-muted-foreground">Nenhuma receita encontrada</p>
             </CardContent>
           </Card>
         ) : (
           filteredRevenues.map((revenue) => (
-            <Card key={revenue.id} className="border-2 border-white bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors">
+            <Card key={revenue.id} className="border-[2.5px] border-white bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
