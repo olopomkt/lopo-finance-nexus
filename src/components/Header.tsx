@@ -1,23 +1,16 @@
-
 import { motion } from 'framer-motion';
 import { StarsBackground } from '@/components/ui/stars';
-
 export const Header = () => {
-  return (
-    <div className="relative">
+  return <div className="relative">
       {/* Espaço de 300px com fundo preto e logo */}
-      <div className="bg-black h-[300px] relative flex items-center justify-center">
-        <img 
-          src="/lovable-uploads/e98ea35f-8b93-4e6b-8564-21b6de4a5dfb.png" 
-          alt="Logo" 
-          className="max-h-[200px] w-auto z-10 relative"
-        />
-      </div>
+      
 
       {/* Background Stars com altura de 650px e conteúdo sobreposto */}
       <div className="relative">
         <StarsBackground className="flex w-full h-[650px] justify-center items-center">
-          <div className="flex flex-col w-full h-full justify-center items-center" style={{ marginTop: '-50px' }}>
+          <div className="flex flex-col w-full h-full justify-center items-center" style={{
+          marginTop: '-50px'
+        }}>
             <div className="font-florence font-normal text-7xl text-[#444444] text-center">
               FINANCE CONTROL
             </div>
@@ -29,13 +22,8 @@ export const Header = () => {
         
         {/* Imagem do buraco negro sobreposta - alinhada com o bottom do star background */}
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 z-10">
-          <img 
-            src="/lovable-uploads/0f9579c4-e6ad-4aab-800e-e273a39c0b37.png" 
-            alt="Buraco Negro" 
-            className="w-auto h-auto max-w-full scale-[2]"
-          />
+          <img src="/lovable-uploads/0f9579c4-e6ad-4aab-800e-e273a39c0b37.png" alt="Buraco Negro" className="w-auto h-auto max-w-full scale-[2]" />
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
