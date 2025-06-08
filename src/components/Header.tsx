@@ -11,11 +11,11 @@ export const Header = () => {
       <img
         src="/lovable-uploads/0f9579c4-e6ad-4aab-800e-e273a39c0b37.png"
         alt="Buraco Negro"
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1600px] h-auto max-w-none opacity-90 z-10 pointer-events-none"
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1300px] h-auto max-w-none opacity-90 z-10 pointer-events-none"
       />
 
       {/* Texto acima do buraco negro */}
-      <div className="relative z-20 flex flex-col items-center mt-60">
+      <div className="relative z-20 flex flex-col items-center mt-65">
         <div className="font-florence font-normal text-7xl text-[#444444] text-center">
           FINANCE CONTROL
         </div>
