@@ -1,3 +1,15 @@
+
+import { cn } from "@/lib/utils"
+import { ElementType, ComponentPropsWithoutRef } from "react"
+
+interface StarBorderProps<T extends ElementType = "button"> {
+  as?: T
+  className?: string
+  color?: string
+  speed?: string
+  children: React.ReactNode
+}
+
 export function StarBorder<T extends ElementType = "button">({
   as,
   className,
