@@ -1,3 +1,4 @@
+
 import { motion } from 'framer-motion';
 import { StarsBackground } from '@/components/ui/stars';
 import { ShinyText } from "@/components/ui/shiny-text";
@@ -26,7 +27,6 @@ export const Header = () => {
             className="font-montserrat italic text-lg tracking-wider text-center"
             speed={4}
           />
-        </div>
         </div>
       </div>
     </div>
