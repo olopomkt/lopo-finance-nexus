@@ -66,38 +66,32 @@ const Index = () => {
           <TabsContent value="records" className="space-y-6 mt-6">
             {/* Botões de Ação com StarBorder */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <StarBorder as="div" className="cursor-pointer" onClick={() => setActiveForm('revenue')}>
-                <div className="flex flex-col items-center space-y-3 p-6">
-                  <div className="p-3 rounded-full bg-zinc-600/20 group-hover:bg-zinc-400/30 transition-colors">
-                    <TrendingUp className="h-6 w-6 text-zinc-100" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="font-semibold text-green-600">Nova Receita</h3>
-                    <p className="text-sm text-muted-foreground">Empresarial</p>
+              <StarBorder as="div" className="cursor-pointer p-1" onClick={() => setActiveForm('revenue')}>
+                <div className="flex items-center justify-center space-x-3 py-3 px-4">
+                  <TrendingUp className="h-5 w-5 text-green-600 flex-shrink-0" />
+                  <div className="text-left">
+                    <h3 className="font-semibold text-green-600 text-sm">Nova Receita</h3>
+                    <p className="text-xs text-muted-foreground">Empresarial</p>
                   </div>
                 </div>
               </StarBorder>
 
-              <StarBorder as="div" className="cursor-pointer" onClick={() => setActiveForm('company-expense')}>
-                <div className="flex flex-col items-center space-y-3 p-6">
-                  <div className="p-3 rounded-full bg-zinc-600/20 group-hover:bg-zinc-400/30 transition-colors">
-                    <Building2 className="h-6 w-6 text-zinc-100" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="font-semibold text-red-400">Nova Despesa</h3>
-                    <p className="text-sm text-muted-foreground">Empresarial</p>
+              <StarBorder as="div" className="cursor-pointer p-1" onClick={() => setActiveForm('company-expense')}>
+                <div className="flex items-center justify-center space-x-3 py-3 px-4">
+                  <Building2 className="h-5 w-5 text-red-400 flex-shrink-0" />
+                  <div className="text-left">
+                    <h3 className="font-semibold text-red-400 text-sm">Nova Despesa</h3>
+                    <p className="text-xs text-muted-foreground">Empresarial</p>
                   </div>
                 </div>
               </StarBorder>
 
-              <StarBorder as="div" className="cursor-pointer" onClick={() => setActiveForm('personal-expense')}>
-                <div className="flex flex-col items-center space-y-3 p-6">
-                  <div className="p-3 rounded-full bg-zinc-600/20 group-hover:bg-zinc-400/30 transition-colors">
-                    <User className="h-6 w-6 text-zinc-100" />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="font-semibold text-neon-purple">Nova Conta</h3>
-                    <p className="text-sm text-muted-foreground">Pessoal</p>
+              <StarBorder as="div" className="cursor-pointer p-1" onClick={() => setActiveForm('personal-expense')}>
+                <div className="flex items-center justify-center space-x-3 py-3 px-4">
+                  <User className="h-5 w-5 text-neon-purple flex-shrink-0" />
+                  <div className="text-left">
+                    <h3 className="font-semibold text-neon-purple text-sm">Nova Conta</h3>
+                    <p className="text-xs text-muted-foreground">Pessoal</p>
                   </div>
                 </div>
               </StarBorder>
