@@ -14,7 +14,7 @@ export function StarBorder<T extends ElementType = "button">({
   as,
   className,
   color,
-  speed = "5s",
+  speed = "4s",
   children,
   ...props
 }: StarBorderProps<T> & Omit<ComponentPropsWithoutRef<T>, keyof StarBorderProps<T>>) {
@@ -24,7 +24,7 @@ export function StarBorder<T extends ElementType = "button">({
   return (
     <Component 
       className={cn(
-        "relative inline-block p-[2px] overflow-hidden rounded-[20px]",
+        "relative inline-block p-[2px] overflow-hidden rounded-[15px]",
         className
       )} 
       {...props}
