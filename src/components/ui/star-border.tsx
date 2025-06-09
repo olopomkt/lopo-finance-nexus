@@ -1,15 +1,3 @@
-
-import { cn } from "@/lib/utils"
-import { ElementType, ComponentPropsWithoutRef } from "react"
-
-interface StarBorderProps<T extends ElementType> {
-  as?: T
-  color?: string
-  speed?: string
-  className?: string
-  children: React.ReactNode
-}
-
 export function StarBorder<T extends ElementType = "button">({
   as,
   className,
@@ -24,7 +12,7 @@ export function StarBorder<T extends ElementType = "button">({
   return (
     <Component 
       className={cn(
-        "relative inline-block p-[2px] overflow-hidden rounded-[20px]",
+        "relative inline-block p-[2px] overflow-hidden rounded-[16px]", // menor radius
         className
       )} 
       {...props}
@@ -50,8 +38,9 @@ export function StarBorder<T extends ElementType = "button">({
         }}
       />
       <div className={cn(
-        "relative z-1 border-2.5 text-foreground text-center text-base py-4 px-6 rounded-[20px]",
-        "bg-gradient-to-b from-neutral-950 to-neutral-900 border-white flex flex-col items-center justify-center"
+        "relative z-1 border-2.5 text-foreground text-left text-base py-3 px-4 rounded-[16px]",
+        "bg-gradient-to-b from-neutral-950 to-neutral-900 border-white",
+        "flex items-center gap-4 w-full max-w-[280px]" // Ajusta tamanho máximo e espaço interno
       )}>
         {children}
       </div>
