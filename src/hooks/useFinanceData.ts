@@ -6,59 +6,95 @@ import { CompanyRevenueFormData, CompanyExpenseFormData, PersonalExpenseFormData
 export const useFinanceData = () => {
   const supabaseHook = useSupabaseData();
 
-  // Wrapper functions que aplicam transformações de data
+  // Wrapper functions que aplicam transformações de data com melhor tratamento de erros
   const saveRevenue = async (data: CompanyRevenueFormData) => {
-    const transformedData = {
-      ...data,
-      paymentDate: dateTransformers.toSupabase(data.paymentDate),
-      receivedDate: data.receivedDate ? dateTransformers.toSupabase(data.receivedDate) : undefined
-    };
-    return supabaseHook.saveRevenue(transformedData);
+    try {
+      const transformedData = {
+        ...data,
+        paymentDate: dateTransformers.toSupabase(data.paymentDate),
+        receivedDate: data.receivedDate ? dateTransformers.toSupabase(data.receivedDate) : undefined
+      };
+      console.log('Transformed revenue data:', transformedData);
+      return await supabaseHook.saveRevenue(transformedData);
+    } catch (error) {
+      console.error('Error in saveRevenue wrapper:', error);
+      throw error;
+    }
   };
 
   const updateRevenue = async (id: string, data: Partial<CompanyRevenueFormData>) => {
-    const transformedData: any = { ...data };
-    if (data.paymentDate) {
-      transformedData.paymentDate = dateTransformers.toSupabase(data.paymentDate);
+    try {
+      const transformedData: any = { ...data };
+      if (data.paymentDate) {
+        transformedData.paymentDate = dateTransformers.toSupabase(data.paymentDate);
+      }
+      if (data.receivedDate) {
+        transformedData.receivedDate = dateTransformers.toSupabase(data.receivedDate);
+      }
+      console.log('Transformed update revenue data:', transformedData);
+      return await supabaseHook.updateRevenue(id, transformedData);
+    } catch (error) {
+      console.error('Error in updateRevenue wrapper:', error);
+      throw error;
     }
-    if (data.receivedDate) {
-      transformedData.receivedDate = dateTransformers.toSupabase(data.receivedDate);
-    }
-    return supabaseHook.updateRevenue(id, transformedData);
   };
 
   const saveCompanyExpense = async (data: CompanyExpenseFormData) => {
-    const transformedData = {
-      ...data,
-      paymentDate: dateTransformers.toSupabase(data.paymentDate),
-      paid: false
-    };
-    return supabaseHook.saveCompanyExpense(transformedData);
+    try {
+      const transformedData = {
+        ...data,
+        paymentDate: dateTransformers.toSupabase(data.paymentDate),
+        paid: false
+      };
+      console.log('Transformed company expense data:', transformedData);
+      return await supabaseHook.saveCompanyExpense(transformedData);
+    } catch (error) {
+      console.error('Error in saveCompanyExpense wrapper:', error);
+      throw error;
+    }
   };
 
   const updateCompanyExpense = async (id: string, data: Partial<CompanyExpenseFormData>) => {
-    const transformedData: any = { ...data };
-    if (data.paymentDate) {
-      transformedData.paymentDate = dateTransformers.toSupabase(data.paymentDate);
+    try {
+      const transformedData: any = { ...data };
+      if (data.paymentDate) {
+        transformedData.paymentDate = dateTransformers.toSupabase(data.paymentDate);
+      }
+      console.log('Transformed update company expense data:', transformedData);
+      return await supabaseHook.updateCompanyExpense(id, transformedData);
+    } catch (error) {
+      console.error('Error in updateCompanyExpense wrapper:', error);
+      throw error;
     }
-    return supabaseHook.updateCompanyExpense(id, transformedData);
   };
 
   const savePersonalExpense = async (data: PersonalExpenseFormData) => {
-    const transformedData = {
-      ...data,
-      paymentDate: dateTransformers.toSupabase(data.paymentDate),
-      paid: false
-    };
-    return supabaseHook.savePersonalExpense(transformedData);
+    try {
+      const transformedData = {
+        ...data,
+        paymentDate: dateTransformers.toSupabase(data.paymentDate),
+        paid: false
+      };
+      console.log('Transformed personal expense data:', transformedData);
+      return await supabaseHook.savePersonalExpense(transformedData);
+    } catch (error) {
+      console.error('Error in savePersonalExpense wrapper:', error);
+      throw error;
+    }
   };
 
   const updatePersonalExpense = async (id: string, data: Partial<PersonalExpenseFormData>) => {
-    const transformedData: any = { ...data };
-    if (data.paymentDate) {
-      transformedData.paymentDate = dateTransformers.toSupabase(data.paymentDate);
+    try {
+      const transformedData: any = { ...data };
+      if (data.paymentDate) {
+        transformedData.paymentDate = dateTransformers.toSupabase(data.paymentDate);
+      }
+      console.log('Transformed update personal expense data:', transformedData);
+      return await supabaseHook.updatePersonalExpense(id, transformedData);
+    } catch (error) {
+      console.error('Error in updatePersonalExpense wrapper:', error);
+      throw error;
     }
-    return supabaseHook.updatePersonalExpense(id, transformedData);
   };
 
   // Transformar dados recebidos do Supabase - já vêm transformados do useSupabaseData
@@ -68,22 +104,32 @@ export const useFinanceData = () => {
 
   // Funções de confirmação com transformação correta
   const confirmReceived = async (id: string, receivedDate: Date = new Date()) => {
-    await updateRevenue(id, { received: true, receivedDate });
+    try {
+      await updateRevenue(id, { received: true, receivedDate });
+    } catch (error) {
+      console.error('Error in confirmReceived:', error);
+      throw error;
+    }
   };
 
   const confirmPayment = async (id: string, type: 'company' | 'personal', paidDate: Date = new Date()) => {
-    if (type === 'company') {
-      const transformedData = {
-        paid: true,
-        paidDate: dateTransformers.toSupabase(paidDate)
-      };
-      await supabaseHook.updateCompanyExpense(id, transformedData);
-    } else {
-      const transformedData = {
-        paid: true,
-        paidDate: dateTransformers.toSupabase(paidDate)
-      };
-      await supabaseHook.updatePersonalExpense(id, transformedData);
+    try {
+      if (type === 'company') {
+        const transformedData = {
+          paid: true,
+          paidDate: dateTransformers.toSupabase(paidDate)
+        };
+        await supabaseHook.updateCompanyExpense(id, transformedData);
+      } else {
+        const transformedData = {
+          paid: true,
+          paidDate: dateTransformers.toSupabase(paidDate)
+        };
+        await supabaseHook.updatePersonalExpense(id, transformedData);
+      }
+    } catch (error) {
+      console.error('Error in confirmPayment:', error);
+      throw error;
     }
   };
 

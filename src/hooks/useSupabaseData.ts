@@ -32,19 +32,28 @@ export const useSupabaseData = () => {
           .order('payment_date', { ascending: false })
       ]);
 
-      if (revenuesResult.error) throw revenuesResult.error;
-      if (companyExpensesResult.error) throw companyExpensesResult.error;
-      if (personalExpensesResult.error) throw personalExpensesResult.error;
+      if (revenuesResult.error) {
+        console.error('Error fetching revenues:', revenuesResult.error);
+        throw revenuesResult.error;
+      }
+      if (companyExpensesResult.error) {
+        console.error('Error fetching company expenses:', companyExpensesResult.error);
+        throw companyExpensesResult.error;
+      }
+      if (personalExpensesResult.error) {
+        console.error('Error fetching personal expenses:', personalExpensesResult.error);
+        throw personalExpensesResult.error;
+      }
 
-      // Transform data with proper date conversion
+      // Transform data with proper date conversion and null checks
       setCompanyRevenues(revenuesResult.data?.map(item => ({
         id: item.id,
-        clientName: item.client_name,
-        service: item.service,
-        price: item.price,
-        paymentMethod: item.payment_method as 'Pix' | 'Cartão' | 'Outro',
-        contractType: item.contract_type as 'único' | 'mensal',
-        contractMonths: item.contract_months,
+        clientName: item.client_name || '',
+        service: item.service || '',
+        price: item.price || 0,
+        paymentMethod: (item.payment_method || 'Pix') as 'Pix' | 'Cartão' | 'Outro',
+        contractType: (item.contract_type || 'único') as 'único' | 'mensal',
+        contractMonths: item.contract_months || null,
         paymentDate: dateTransformers.fromSupabase(item.payment_date),
         accountType: (item.account_type || 'Marlon Lopo') as 'Marlon Lopo' | 'Infinity B2B',
         received: item.received || false,
@@ -54,10 +63,10 @@ export const useSupabaseData = () => {
 
       setCompanyExpenses(companyExpensesResult.data?.map(item => ({
         id: item.id,
-        name: item.name,
-        price: item.price,
-        paymentMethod: item.payment_method as 'Pix' | 'Cartão' | 'Outro',
-        type: item.type as 'Assinatura' | 'Único',
+        name: item.name || '',
+        price: item.price || 0,
+        paymentMethod: (item.payment_method || 'Pix') as 'Pix' | 'Cartão' | 'Outro',
+        type: (item.type || 'Único') as 'Assinatura' | 'Único',
         paymentDate: dateTransformers.fromSupabase(item.payment_date),
         paid: item.paid || false,
         paidDate: item.paid_date ? dateTransformers.fromSupabase(item.paid_date) : undefined,
@@ -66,20 +75,21 @@ export const useSupabaseData = () => {
 
       setPersonalExpenses(personalExpensesResult.data?.map(item => ({
         id: item.id,
-        name: item.name,
-        price: item.price,
+        name: item.name || '',
+        price: item.price || 0,
         paymentDate: dateTransformers.fromSupabase(item.payment_date),
-        observation: item.observation,
+        observation: item.observation || undefined,
         paid: item.paid || false,
         paidDate: item.paid_date ? dateTransformers.fromSupabase(item.paid_date) : undefined,
         createdAt: dateTransformers.fromSupabase(item.created_at)
       })) || []);
 
     } catch (err: any) {
-      setError(err.message);
+      console.error('Error in fetchAllData:', err);
+      setError(err.message || 'Erro desconhecido ao carregar dados');
       toast({
         title: "Erro ao carregar dados",
-        description: err.message,
+        description: err.message || 'Erro desconhecido',
         variant: "destructive"
       });
     } finally {
@@ -87,10 +97,11 @@ export const useSupabaseData = () => {
     }
   }, []);
 
-  // Save operations
+  // Save operations with better error handling
   const saveRevenue = useCallback(async (data: any) => {
     setIsLoading(true);
     try {
+      console.log('Saving revenue data:', data);
       const { data: result, error } = await supabase
         .from('company_revenues')
         .insert({
@@ -102,13 +113,16 @@ export const useSupabaseData = () => {
           contract_months: data.contractMonths,
           payment_date: data.paymentDate,
           account_type: data.accountType,
-          received: data.received,
-          received_date: data.receivedDate
+          received: data.received || false,
+          received_date: data.receivedDate || null
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving revenue:', error);
+        throw error;
+      }
       
       const newRevenue: CompanyRevenue = {
         id: result.id,
@@ -126,7 +140,19 @@ export const useSupabaseData = () => {
       };
 
       setCompanyRevenues(prev => [newRevenue, ...prev]);
+      toast({
+        title: "Sucesso",
+        description: "Receita salva com sucesso!"
+      });
       return newRevenue;
+    } catch (error: any) {
+      console.error('Error in saveRevenue:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao salvar receita",
+        variant: "destructive"
+      });
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -135,6 +161,7 @@ export const useSupabaseData = () => {
   const saveCompanyExpense = useCallback(async (data: any) => {
     setIsLoading(true);
     try {
+      console.log('Saving company expense data:', data);
       const { data: result, error } = await supabase
         .from('company_expenses')
         .insert({
@@ -143,13 +170,16 @@ export const useSupabaseData = () => {
           payment_method: data.paymentMethod,
           type: data.type,
           payment_date: data.paymentDate,
-          paid: data.paid,
-          paid_date: data.paidDate
+          paid: data.paid || false,
+          paid_date: data.paidDate || null
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving company expense:', error);
+        throw error;
+      }
       
       const newExpense: CompanyExpense = {
         id: result.id,
@@ -164,7 +194,19 @@ export const useSupabaseData = () => {
       };
 
       setCompanyExpenses(prev => [newExpense, ...prev]);
+      toast({
+        title: "Sucesso",
+        description: "Despesa salva com sucesso!"
+      });
       return newExpense;
+    } catch (error: any) {
+      console.error('Error in saveCompanyExpense:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao salvar despesa",
+        variant: "destructive"
+      });
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -173,20 +215,24 @@ export const useSupabaseData = () => {
   const savePersonalExpense = useCallback(async (data: any) => {
     setIsLoading(true);
     try {
+      console.log('Saving personal expense data:', data);
       const { data: result, error } = await supabase
         .from('personal_expenses')
         .insert({
           name: data.name,
           price: data.price,
           payment_date: data.paymentDate,
-          observation: data.observation,
-          paid: data.paid,
-          paid_date: data.paidDate
+          observation: data.observation || null,
+          paid: data.paid || false,
+          paid_date: data.paidDate || null
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving personal expense:', error);
+        throw error;
+      }
       
       const newExpense: PersonalExpense = {
         id: result.id,
@@ -200,16 +246,29 @@ export const useSupabaseData = () => {
       };
 
       setPersonalExpenses(prev => [newExpense, ...prev]);
+      toast({
+        title: "Sucesso",
+        description: "Conta salva com sucesso!"
+      });
       return newExpense;
+    } catch (error: any) {
+      console.error('Error in savePersonalExpense:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao salvar conta",
+        variant: "destructive"
+      });
+      throw error;
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Update operations
+  // Update operations with better error handling
   const updateRevenue = useCallback(async (id: string, data: any) => {
     setIsLoading(true);
     try {
+      console.log('Updating revenue:', id, data);
       const updateData: any = {};
       if (data.clientName !== undefined) updateData.client_name = data.clientName;
       if (data.service !== undefined) updateData.service = data.service;
@@ -227,11 +286,27 @@ export const useSupabaseData = () => {
         .update(updateData)
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating revenue:', error);
+        throw error;
+      }
 
       setCompanyRevenues(prev => 
         prev.map(item => item.id === id ? { ...item, ...data } : item)
       );
+      
+      toast({
+        title: "Sucesso",
+        description: "Receita atualizada com sucesso!"
+      });
+    } catch (error: any) {
+      console.error('Error in updateRevenue:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao atualizar receita",
+        variant: "destructive"
+      });
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -240,6 +315,7 @@ export const useSupabaseData = () => {
   const updateCompanyExpense = useCallback(async (id: string, data: any) => {
     setIsLoading(true);
     try {
+      console.log('Updating company expense:', id, data);
       const updateData: any = {};
       if (data.name !== undefined) updateData.name = data.name;
       if (data.price !== undefined) updateData.price = data.price;
@@ -254,11 +330,27 @@ export const useSupabaseData = () => {
         .update(updateData)
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating company expense:', error);
+        throw error;
+      }
 
       setCompanyExpenses(prev => 
         prev.map(item => item.id === id ? { ...item, ...data } : item)
       );
+      
+      toast({
+        title: "Sucesso",
+        description: "Despesa atualizada com sucesso!"
+      });
+    } catch (error: any) {
+      console.error('Error in updateCompanyExpense:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao atualizar despesa",
+        variant: "destructive"
+      });
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -267,6 +359,7 @@ export const useSupabaseData = () => {
   const updatePersonalExpense = useCallback(async (id: string, data: any) => {
     setIsLoading(true);
     try {
+      console.log('Updating personal expense:', id, data);
       const updateData: any = {};
       if (data.name !== undefined) updateData.name = data.name;
       if (data.price !== undefined) updateData.price = data.price;
@@ -280,67 +373,146 @@ export const useSupabaseData = () => {
         .update(updateData)
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating personal expense:', error);
+        throw error;
+      }
 
       setPersonalExpenses(prev => 
         prev.map(item => item.id === id ? { ...item, ...data } : item)
       );
+      
+      toast({
+        title: "Sucesso",
+        description: "Conta atualizada com sucesso!"
+      });
+    } catch (error: any) {
+      console.error('Error in updatePersonalExpense:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao atualizar conta",
+        variant: "destructive"
+      });
+      throw error;
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Delete operations
+  // Delete operations with better error handling
   const deleteRevenue = useCallback(async (id: string) => {
-    const { error } = await supabase
-      .from('company_revenues')
-      .delete()
-      .eq('id', id);
+    try {
+      console.log('Deleting revenue:', id);
+      const { error } = await supabase
+        .from('company_revenues')
+        .delete()
+        .eq('id', id);
 
-    if (error) throw error;
+      if (error) {
+        console.error('Error deleting revenue:', error);
+        throw error;
+      }
 
-    setCompanyRevenues(prev => prev.filter(item => item.id !== id));
+      setCompanyRevenues(prev => prev.filter(item => item.id !== id));
+      toast({
+        title: "Sucesso",
+        description: "Receita excluída com sucesso!"
+      });
+    } catch (error: any) {
+      console.error('Error in deleteRevenue:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao excluir receita",
+        variant: "destructive"
+      });
+      throw error;
+    }
   }, []);
 
   const deleteCompanyExpense = useCallback(async (id: string) => {
-    const { error } = await supabase
-      .from('company_expenses')
-      .delete()
-      .eq('id', id);
+    try {
+      console.log('Deleting company expense:', id);
+      const { error } = await supabase
+        .from('company_expenses')
+        .delete()
+        .eq('id', id);
 
-    if (error) throw error;
+      if (error) {
+        console.error('Error deleting company expense:', error);
+        throw error;
+      }
 
-    setCompanyExpenses(prev => prev.filter(item => item.id !== id));
+      setCompanyExpenses(prev => prev.filter(item => item.id !== id));
+      toast({
+        title: "Sucesso",
+        description: "Despesa excluída com sucesso!"
+      });
+    } catch (error: any) {
+      console.error('Error in deleteCompanyExpense:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao excluir despesa",
+        variant: "destructive"
+      });
+      throw error;
+    }
   }, []);
 
   const deletePersonalExpense = useCallback(async (id: string) => {
-    const { error } = await supabase
-      .from('personal_expenses')
-      .delete()
-      .eq('id', id);
+    try {
+      console.log('Deleting personal expense:', id);
+      const { error } = await supabase
+        .from('personal_expenses')
+        .delete()
+        .eq('id', id);
 
-    if (error) throw error;
+      if (error) {
+        console.error('Error deleting personal expense:', error);
+        throw error;
+      }
 
-    setPersonalExpenses(prev => prev.filter(item => item.id !== id));
+      setPersonalExpenses(prev => prev.filter(item => item.id !== id));
+      toast({
+        title: "Sucesso",
+        description: "Conta excluída com sucesso!"
+      });
+    } catch (error: any) {
+      console.error('Error in deletePersonalExpense:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Erro ao excluir conta",
+        variant: "destructive"
+      });
+      throw error;
+    }
   }, []);
 
   // Confirmation operations
   const confirmReceived = useCallback(async (id: string, receivedDate: Date = new Date()) => {
-    await updateRevenue(id, { received: true, receivedDate: dateTransformers.toSupabase(receivedDate) });
-    toast({ title: "Sucesso", description: "Recebimento confirmado!" });
+    try {
+      await updateRevenue(id, { received: true, receivedDate: dateTransformers.toSupabase(receivedDate) });
+    } catch (error) {
+      console.error('Error confirming received:', error);
+      throw error;
+    }
   }, [updateRevenue]);
 
   const confirmPayment = useCallback(async (id: string, type: 'company' | 'personal', paidDate: Date = new Date()) => {
-    if (type === 'company') {
-      await updateCompanyExpense(id, { paid: true, paidDate: dateTransformers.toSupabase(paidDate) });
-    } else {
-      await updatePersonalExpense(id, { paid: true, paidDate: dateTransformers.toSupabase(paidDate) });
+    try {
+      if (type === 'company') {
+        await updateCompanyExpense(id, { paid: true, paidDate: dateTransformers.toSupabase(paidDate) });
+      } else {
+        await updatePersonalExpense(id, { paid: true, paidDate: dateTransformers.toSupabase(paidDate) });
+      }
+    } catch (error) {
+      console.error('Error confirming payment:', error);
+      throw error;
     }
-    toast({ title: "Sucesso", description: "Pagamento confirmado!" });
   }, [updateCompanyExpense, updatePersonalExpense]);
 
-  // Set up real-time subscriptions
+  // Set up real-time subscriptions with better error handling
   useEffect(() => {
+    console.log('Setting up real-time subscriptions');
     const channel = supabase
       .channel('finance-data-changes')
       .on(
@@ -350,7 +522,8 @@ export const useSupabaseData = () => {
           schema: 'public',
           table: 'company_revenues'
         },
-        () => {
+        (payload) => {
+          console.log('Real-time change in company_revenues:', payload);
           setTimeout(() => fetchAllData(), 100);
         }
       )
@@ -361,7 +534,8 @@ export const useSupabaseData = () => {
           schema: 'public',
           table: 'company_expenses'
         },
-        () => {
+        (payload) => {
+          console.log('Real-time change in company_expenses:', payload);
           setTimeout(() => fetchAllData(), 100);
         }
       )
@@ -372,19 +546,24 @@ export const useSupabaseData = () => {
           schema: 'public',
           table: 'personal_expenses'
         },
-        () => {
+        (payload) => {
+          console.log('Real-time change in personal_expenses:', payload);
           setTimeout(() => fetchAllData(), 100);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
 
     return () => {
+      console.log('Cleaning up real-time subscriptions');
       supabase.removeChannel(channel);
     };
   }, [fetchAllData]);
 
   // Fetch data on mount
   useEffect(() => {
+    console.log('Fetching initial data');
     fetchAllData();
   }, [fetchAllData]);
 
