@@ -1,20 +1,28 @@
+// src/components/PasswordScreen.tsx
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { usePasswordAuth } from '@/hooks/usePasswordAuth';
+// import { usePasswordAuth } from '@/hooks/usePasswordAuth'; // <-- 1. REMOVA ESTA LINHA
 
-export const PasswordScreen = () => {
+// 2. ADICIONE A DEFINIÇÃO DAS PROPS
+interface PasswordScreenProps {
+  onLogin: (password: string, keepLogged: boolean) => boolean;
+}
+
+// 3. RECEBA 'onLogin' VIA PROPS
+export const PasswordScreen = ({ onLogin }: PasswordScreenProps) => {
   const [password, setPassword] = useState('');
   const [keepLogged, setKeepLogged] = useState(false);
   const [error, setError] = useState('');
-  const { login } = usePasswordAuth();
+  // const { login } = usePasswordAuth(); // <-- 4. REMOVA ESTA LINHA TAMBÉM
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (login(password, keepLogged)) {
+    // 5. USE A PROP 'onLogin' EM VEZ DA FUNÇÃO 'login' LOCAL
+    if (onLogin(password, keepLogged)) {
       setError('');
     } else {
       setError('Senha incorreta');
@@ -23,6 +31,8 @@ export const PasswordScreen = () => {
   };
 
   return (
+    // O seu JSX (toda a parte visual) continua exatamente o mesmo.
+    // Nenhuma mudança é necessária aqui.
     <div 
       className="min-h-screen bg-neutral-950 flex items-center justify-center p-4 relative"
       style={{
@@ -32,7 +42,6 @@ export const PasswordScreen = () => {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      {/* Overlay para aplicar opacidade à imagem de fundo */}
       <div className="absolute inset-0 bg-neutral-950 bg-opacity-50"></div>
       
       <div className="relative z-10 bg-white bg-opacity-10 backdrop-blur-md rounded-lg border border-white border-opacity-20 p-6 w-full max-w-xs hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all duration-300">
