@@ -5,14 +5,15 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { usePasswordAuth } from "@/hooks/usePasswordAuth";
-import { PasswordScreen } from "@/components/PasswordScreen";
+import { PasswordScreen } from "@/components/PasswordScreen"; // O nome do seu componente
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const { isAuthenticated, isLoading } = usePasswordAuth();
+  // 1. Obtenha a função 'login' AQUI e somente aqui.
+  const { isAuthenticated, isLoading, login } = usePasswordAuth();
 
   if (isLoading) {
     return (
@@ -23,7 +24,8 @@ const AppContent = () => {
   }
 
   if (!isAuthenticated) {
-    return <PasswordScreen />;
+    // 2. Passe a função 'login' como uma prop chamada 'onLogin'
+    return <PasswordScreen onLogin={login} />;
   }
 
   return (
@@ -36,6 +38,7 @@ const AppContent = () => {
   );
 };
 
+// O resto do arquivo não muda...
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
