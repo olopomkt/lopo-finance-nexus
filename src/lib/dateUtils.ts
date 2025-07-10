@@ -68,6 +68,26 @@ export const dateTransformers = {
     }
   },
 
+  // Formata data para o calendário (componente de seleção de data)
+  formatCalendar: (date: Date | string | null): string => {
+    try {
+      if (!date) {
+        return 'Selecione uma data';
+      }
+      
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      
+      if (!isValid(dateObj)) {
+        return 'Data inválida';
+      }
+      
+      return format(dateObj, 'dd/MM/yyyy', { locale: ptBR });
+    } catch (error) {
+      console.error('Error formatting date for calendar:', error, date);
+      return 'Erro na data';
+    }
+  },
+
   // Converte input de formulário para Date
   fromFormInput: (dateString: string): Date => {
     try {
