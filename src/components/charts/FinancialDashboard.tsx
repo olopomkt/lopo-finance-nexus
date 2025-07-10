@@ -75,7 +75,7 @@ export const FinancialDashboard = () => {
     const infinityB2BRevenue = companyRevenues.filter(r => r.accountType === 'Infinity B2B').reduce((sum, item) => sum + item.price, 0);
 
     // Dados para gráfico de pizza - Distribuição de gastos
-    const expenseDistribution = [{
+    const expenseDistribution = totalCompanyExpenses > 0 || totalPersonalExpenses > 0 ? [{
       name: 'Despesas Empresariais',
       value: totalCompanyExpenses,
       color: '#5f5c5d'
@@ -83,6 +83,10 @@ export const FinancialDashboard = () => {
       name: 'Contas Pessoais',
       value: totalPersonalExpenses,
       color: '#989596'
+    }] : [{
+      name: 'Sem dados',
+      value: 1,
+      color: '#cccccc'
     }];
 
     // Dados para gráfico de barras - Por método de pagamento
@@ -236,17 +240,34 @@ export const FinancialDashboard = () => {
             <CardTitle>Distribuição de Despesas</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie data={dashboardData.expenseDistribution} cx="50%" cy="50%" labelLine={false} label={({
-                name,
-                percent
-              }) => `${name} ${(percent * 100).toFixed(0)}%`} outerRadius={80} fill="#8884d8" dataKey="value">
-                  {dashboardData.expenseDistribution.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                </Pie>
-                <Tooltip formatter={value => formatCurrency(Number(value))} />
-              </PieChart>
-            </ResponsiveContainer>
+            {dashboardData.totalCompanyExpenses > 0 || dashboardData.totalPersonalExpenses > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie 
+                    data={dashboardData.expenseDistribution} 
+                    cx="50%" 
+                    cy="50%" 
+                    labelLine={false} 
+                    label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`} 
+                    outerRadius={80} 
+                    fill="#8884d8" 
+                    dataKey="value"
+                  >
+                    {dashboardData.expenseDistribution.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={value => formatCurrency(Number(value))} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+                <div className="text-center">
+                  <p className="text-lg mb-2">Nenhuma despesa cadastrada</p>
+                  <p className="text-sm">Adicione despesas para visualizar a distribuição</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

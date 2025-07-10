@@ -8,8 +8,9 @@ import { useFinanceData } from '@/hooks/useFinanceData';
 import { useGlobalFilters } from '@/contexts/FilterContext';
 import { useFilteredData } from '@/hooks/useFilteredData';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { AlertCircle, Wifi, WifiOff, TrendingUp, Building2, User } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Props {
   onEditRevenue: (revenue: CompanyRevenue) => void;
@@ -88,37 +89,56 @@ export const RecordsView = ({
       {/* Filtro Unificado - UM ÚNICO para todas as categorias */}
       <AdvancedFilterBar />
       
-      <div className="space-y-8">
-        {/* Receitas */}
-        <div className="border-[2.5px] border-white rounded-lg p-4">
-          <RevenueList 
-            onEdit={onEditRevenue} 
-            revenues={filteredRevenues}
-            showHeader={true}
-            isLoading={isLoading}
-          />
-        </div>
+      {/* Tabs para separar as categorias */}
+      <Tabs defaultValue="revenues" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 border-[2.5px] border-white">
+          <TabsTrigger value="revenues" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Receitas Empresariais
+          </TabsTrigger>
+          <TabsTrigger value="company-expenses" className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            Despesas Empresariais
+          </TabsTrigger>
+          <TabsTrigger value="personal-expenses" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Contas Pessoais
+          </TabsTrigger>
+        </TabsList>
 
-        {/* Despesas Empresariais */}
-        <div className="border-[2.5px] border-white rounded-lg p-4">
-          <CompanyExpenseList 
-            onEdit={onEditCompanyExpense}
-            expenses={filteredCompanyExpenses}
-            showHeader={true}
-            isLoading={isLoading}
-          />
-        </div>
+        <TabsContent value="revenues" className="mt-6">
+          <div className="border-[2.5px] border-white rounded-lg p-4">
+            <RevenueList 
+              onEdit={onEditRevenue} 
+              revenues={filteredRevenues}
+              showHeader={true}
+              isLoading={isLoading}
+            />
+          </div>
+        </TabsContent>
 
-        {/* Contas Pessoais */}
-        <div className="border-[2.5px] border-white rounded-lg p-4">
-          <PersonalExpenseList 
-            onEdit={onEditPersonalExpense}
-            expenses={filteredPersonalExpenses}
-            showHeader={true}
-            isLoading={isLoading}
-          />
-        </div>
-      </div>
+        <TabsContent value="company-expenses" className="mt-6">
+          <div className="border-[2.5px] border-white rounded-lg p-4">
+            <CompanyExpenseList 
+              onEdit={onEditCompanyExpense}
+              expenses={filteredCompanyExpenses}
+              showHeader={true}
+              isLoading={isLoading}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="personal-expenses" className="mt-6">
+          <div className="border-[2.5px] border-white rounded-lg p-4">
+            <PersonalExpenseList 
+              onEdit={onEditPersonalExpense}
+              expenses={filteredPersonalExpenses}
+              showHeader={true}
+              isLoading={isLoading}
+            />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
