@@ -14,7 +14,129 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      company_expenses: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          paid: boolean
+          paid_date: string | null
+          payment_date: string
+          payment_method: string
+          price: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          paid?: boolean
+          paid_date?: string | null
+          payment_date: string
+          payment_method: string
+          price: number
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          paid?: boolean
+          paid_date?: string | null
+          payment_date?: string
+          payment_method?: string
+          price?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      company_revenues: {
+        Row: {
+          account_type: string
+          client_name: string
+          contract_months: number | null
+          contract_type: string
+          created_at: string
+          id: string
+          payment_date: string
+          payment_method: string
+          price: number
+          received: boolean
+          received_date: string | null
+          service: string
+          updated_at: string
+        }
+        Insert: {
+          account_type: string
+          client_name: string
+          contract_months?: number | null
+          contract_type: string
+          created_at?: string
+          id?: string
+          payment_date: string
+          payment_method: string
+          price: number
+          received?: boolean
+          received_date?: string | null
+          service: string
+          updated_at?: string
+        }
+        Update: {
+          account_type?: string
+          client_name?: string
+          contract_months?: number | null
+          contract_type?: string
+          created_at?: string
+          id?: string
+          payment_date?: string
+          payment_method?: string
+          price?: number
+          received?: boolean
+          received_date?: string | null
+          service?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      personal_expenses: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          observation: string | null
+          paid: boolean
+          paid_date: string | null
+          payment_date: string
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          observation?: string | null
+          paid?: boolean
+          paid_date?: string | null
+          payment_date: string
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          observation?: string | null
+          paid?: boolean
+          paid_date?: string | null
+          payment_date?: string
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

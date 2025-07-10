@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import { dateTransformers } from '@/lib/dateUtils';
+import type { Database } from '@/integrations/supabase/types';
 
 export const useSupabaseData = () => {
   const [companyRevenues, setCompanyRevenues] = useState<CompanyRevenue[]>([]);
@@ -50,10 +51,10 @@ export const useSupabaseData = () => {
         id: item.id,
         clientName: item.client_name || '',
         service: item.service || '',
-        price: item.price || 0,
+        price: Number(item.price) || 0,
         paymentMethod: (item.payment_method || 'Pix') as 'Pix' | 'Cartão' | 'Outro',
         contractType: (item.contract_type || 'único') as 'único' | 'mensal',
-        contractMonths: item.contract_months || null,
+        contractMonths: item.contract_months || undefined,
         paymentDate: dateTransformers.fromSupabase(item.payment_date),
         accountType: (item.account_type || 'Marlon Lopo') as 'Marlon Lopo' | 'Infinity B2B',
         received: item.received || false,
@@ -64,7 +65,7 @@ export const useSupabaseData = () => {
       setCompanyExpenses(companyExpensesResult.data?.map(item => ({
         id: item.id,
         name: item.name || '',
-        price: item.price || 0,
+        price: Number(item.price) || 0,
         paymentMethod: (item.payment_method || 'Pix') as 'Pix' | 'Cartão' | 'Outro',
         type: (item.type || 'Único') as 'Assinatura' | 'Único',
         paymentDate: dateTransformers.fromSupabase(item.payment_date),
@@ -76,7 +77,7 @@ export const useSupabaseData = () => {
       setPersonalExpenses(personalExpensesResult.data?.map(item => ({
         id: item.id,
         name: item.name || '',
-        price: item.price || 0,
+        price: Number(item.price) || 0,
         paymentDate: dateTransformers.fromSupabase(item.payment_date),
         observation: item.observation || undefined,
         paid: item.paid || false,
@@ -123,15 +124,19 @@ export const useSupabaseData = () => {
         console.error('Error saving revenue:', error);
         throw error;
       }
+
+      if (!result) {
+        throw new Error('Erro inesperado: resultado vazio do banco');
+      }
       
       const newRevenue: CompanyRevenue = {
         id: result.id,
         clientName: result.client_name,
         service: result.service,
-        price: result.price,
+        price: Number(result.price),
         paymentMethod: result.payment_method as 'Pix' | 'Cartão' | 'Outro',
         contractType: result.contract_type as 'único' | 'mensal',
-        contractMonths: result.contract_months,
+        contractMonths: result.contract_months || undefined,
         paymentDate: dateTransformers.fromSupabase(result.payment_date),
         accountType: result.account_type as 'Marlon Lopo' | 'Infinity B2B',
         received: result.received || false,
@@ -180,11 +185,15 @@ export const useSupabaseData = () => {
         console.error('Error saving company expense:', error);
         throw error;
       }
+
+      if (!result) {
+        throw new Error('Erro inesperado: resultado vazio do banco');
+      }
       
       const newExpense: CompanyExpense = {
         id: result.id,
         name: result.name,
-        price: result.price,
+        price: Number(result.price),
         paymentMethod: result.payment_method as 'Pix' | 'Cartão' | 'Outro',
         type: result.type as 'Assinatura' | 'Único',
         paymentDate: dateTransformers.fromSupabase(result.payment_date),
@@ -233,13 +242,17 @@ export const useSupabaseData = () => {
         console.error('Error saving personal expense:', error);
         throw error;
       }
+
+      if (!result) {
+        throw new Error('Erro inesperado: resultado vazio do banco');
+      }
       
       const newExpense: PersonalExpense = {
         id: result.id,
         name: result.name,
-        price: result.price,
+        price: Number(result.price),
         paymentDate: dateTransformers.fromSupabase(result.payment_date),
-        observation: result.observation,
+        observation: result.observation || undefined,
         paid: result.paid || false,
         paidDate: result.paid_date ? dateTransformers.fromSupabase(result.paid_date) : undefined,
         createdAt: dateTransformers.fromSupabase(result.created_at)
