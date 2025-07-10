@@ -8,56 +8,15 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CalendarIcon, Filter, X, Search, DollarSign, Calendar as CalendarIconTwo } from 'lucide-react';
+import { CalendarIcon, Filter, X, Search, DollarSign, Calendar as CalendarIconTwo, ArrowUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { PaymentMethod, ContractType, ExpenseType, AccountType } from '@/types/finance';
+import { useGlobalFilters } from '@/contexts/FilterContext';
 
-export interface FilterState {
-  searchTerm: string;
-  paymentMethod: PaymentMethod | 'all';
-  contractType: ContractType | 'all';
-  expenseType: ExpenseType | 'all';
-  accountType: AccountType | 'all';
-  status: 'all' | 'received' | 'pending' | 'paid' | 'unpaid';
-  dateRange: {
-    start: Date | null;
-    end: Date | null;
-  };
-  priceRange: {
-    min: number | null;
-    max: number | null;
-  };
-}
-
-interface AdvancedFilterBarProps {
-  filters: FilterState;
-  onFiltersChange: (filters: FilterState) => void;
-  className?: string;
-}
-
-const defaultFilters: FilterState = {
-  searchTerm: '',
-  paymentMethod: 'all',
-  contractType: 'all',
-  expenseType: 'all',
-  accountType: 'all',
-  status: 'all',
-  dateRange: { start: null, end: null },
-  priceRange: { min: null, max: null }
-};
-
-export const AdvancedFilterBar = ({ filters, onFiltersChange, className }: AdvancedFilterBarProps) => {
+export const AdvancedFilterBar = ({ className }: { className?: string }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-
-  const updateFilter = <K extends keyof FilterState>(key: K, value: FilterState[K]) => {
-    onFiltersChange({ ...filters, [key]: value });
-  };
-
-  const clearFilters = () => {
-    onFiltersChange(defaultFilters);
-  };
+  const { filters, updateFilter, clearFilters } = useGlobalFilters();
 
   const hasActiveFilters = () => {
     return (
@@ -126,25 +85,25 @@ export const AdvancedFilterBar = ({ filters, onFiltersChange, className }: Advan
       
       <CardContent className="space-y-4">
         {/* Filtros Básicos - Sempre Visíveis */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Pesquisar por nome, cliente, serviço..."
               value={filters.searchTerm}
               onChange={(e) => updateFilter('searchTerm', e.target.value)}
-              className="pl-10 bg-background/50 border-muted"
+              className="pl-10 bg-background/50 border-muted pointer-events-auto"
             />
           </div>
 
           <Select
             value={filters.status}
-            onValueChange={(value) => updateFilter('status', value as FilterState['status'])}
+            onValueChange={(value) => updateFilter('status', value as typeof filters.status)}
           >
-            <SelectTrigger className="bg-background/50 border-muted">
+            <SelectTrigger className="bg-background/50 border-muted pointer-events-auto">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="pointer-events-auto">
               <SelectItem value="all">Todos os Status</SelectItem>
               <SelectItem value="received">Recebido</SelectItem>
               <SelectItem value="pending">Pendente</SelectItem>
@@ -155,16 +114,38 @@ export const AdvancedFilterBar = ({ filters, onFiltersChange, className }: Advan
 
           <Select
             value={filters.paymentMethod}
-            onValueChange={(value) => updateFilter('paymentMethod', value as PaymentMethod | 'all')}
+            onValueChange={(value) => updateFilter('paymentMethod', value as typeof filters.paymentMethod)}
           >
-            <SelectTrigger className="bg-background/50 border-muted">
+            <SelectTrigger className="bg-background/50 border-muted pointer-events-auto">
               <SelectValue placeholder="Método de Pagamento" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="pointer-events-auto">
               <SelectItem value="all">Todos os Métodos</SelectItem>
               <SelectItem value="Pix">Pix</SelectItem>
               <SelectItem value="Cartão">Cartão</SelectItem>
               <SelectItem value="Outro">Outro</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={`${filters.sortBy}-${filters.sortOrder}`}
+            onValueChange={(value) => {
+              const [sortBy, sortOrder] = value.split('-') as [typeof filters.sortBy, typeof filters.sortOrder];
+              updateFilter('sortBy', sortBy);
+              updateFilter('sortOrder', sortOrder);
+            }}
+          >
+            <SelectTrigger className="bg-background/50 border-muted pointer-events-auto">
+              <ArrowUpDown className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent className="pointer-events-auto">
+              <SelectItem value="date-desc">Data (Mais Recente)</SelectItem>
+              <SelectItem value="date-asc">Data (Mais Antiga)</SelectItem>
+              <SelectItem value="price-desc">Preço (Maior)</SelectItem>
+              <SelectItem value="price-asc">Preço (Menor)</SelectItem>
+              <SelectItem value="name-asc">Nome (A-Z)</SelectItem>
+              <SelectItem value="name-desc">Nome (Z-A)</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -182,12 +163,12 @@ export const AdvancedFilterBar = ({ filters, onFiltersChange, className }: Advan
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Select
                   value={filters.contractType}
-                  onValueChange={(value) => updateFilter('contractType', value as ContractType | 'all')}
+                  onValueChange={(value) => updateFilter('contractType', value as typeof filters.contractType)}
                 >
-                  <SelectTrigger className="bg-background/50 border-muted">
+                  <SelectTrigger className="bg-background/50 border-muted pointer-events-auto">
                     <SelectValue placeholder="Tipo de Contrato" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="pointer-events-auto">
                     <SelectItem value="all">Todos os Tipos</SelectItem>
                     <SelectItem value="único">Único</SelectItem>
                     <SelectItem value="mensal">Mensal</SelectItem>
@@ -196,12 +177,12 @@ export const AdvancedFilterBar = ({ filters, onFiltersChange, className }: Advan
 
                 <Select
                   value={filters.expenseType}
-                  onValueChange={(value) => updateFilter('expenseType', value as ExpenseType | 'all')}
+                  onValueChange={(value) => updateFilter('expenseType', value as typeof filters.expenseType)}
                 >
-                  <SelectTrigger className="bg-background/50 border-muted">
+                  <SelectTrigger className="bg-background/50 border-muted pointer-events-auto">
                     <SelectValue placeholder="Tipo de Despesa" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="pointer-events-auto">
                     <SelectItem value="all">Todos os Tipos</SelectItem>
                     <SelectItem value="Assinatura">Assinatura</SelectItem>
                     <SelectItem value="Único">Único</SelectItem>
@@ -210,12 +191,12 @@ export const AdvancedFilterBar = ({ filters, onFiltersChange, className }: Advan
 
                 <Select
                   value={filters.accountType}
-                  onValueChange={(value) => updateFilter('accountType', value as AccountType | 'all')}
+                  onValueChange={(value) => updateFilter('accountType', value as typeof filters.accountType)}
                 >
-                  <SelectTrigger className="bg-background/50 border-muted">
+                  <SelectTrigger className="bg-background/50 border-muted pointer-events-auto">
                     <SelectValue placeholder="Tipo de Conta" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="pointer-events-auto">
                     <SelectItem value="all">Todas as Contas</SelectItem>
                     <SelectItem value="Marlon Lopo">Marlon Lopo</SelectItem>
                     <SelectItem value="Infinity B2B">Infinity B2B</SelectItem>
@@ -227,18 +208,19 @@ export const AdvancedFilterBar = ({ filters, onFiltersChange, className }: Advan
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        className="flex-1 justify-start text-left font-normal bg-background/50 border-muted"
+                        className="flex-1 justify-start text-left font-normal bg-background/50 border-muted pointer-events-auto"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {filters.dateRange.start ? format(filters.dateRange.start, "dd/MM") : "Data Início"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-background border-muted" align="start">
+                    <PopoverContent className="w-auto p-0 bg-background border-muted pointer-events-auto" align="start">
                       <Calendar
                         mode="single"
                         selected={filters.dateRange.start || undefined}
                         onSelect={(date) => updateFilter('dateRange', { ...filters.dateRange, start: date || null })}
                         initialFocus
+                        className="pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
@@ -247,18 +229,19 @@ export const AdvancedFilterBar = ({ filters, onFiltersChange, className }: Advan
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        className="flex-1 justify-start text-left font-normal bg-background/50 border-muted"
+                        className="flex-1 justify-start text-left font-normal bg-background/50 border-muted pointer-events-auto"
                       >
                         <CalendarIconTwo className="mr-2 h-4 w-4" />
                         {filters.dateRange.end ? format(filters.dateRange.end, "dd/MM") : "Data Fim"}
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-background border-muted" align="start">
+                    <PopoverContent className="w-auto p-0 bg-background border-muted pointer-events-auto" align="start">
                       <Calendar
                         mode="single"
                         selected={filters.dateRange.end || undefined}
                         onSelect={(date) => updateFilter('dateRange', { ...filters.dateRange, end: date || null })}
                         initialFocus
+                        className="pointer-events-auto"
                       />
                     </PopoverContent>
                   </Popover>
@@ -276,7 +259,7 @@ export const AdvancedFilterBar = ({ filters, onFiltersChange, className }: Advan
                       ...filters.priceRange, 
                       min: e.target.value ? parseFloat(e.target.value) : null 
                     })}
-                    className="bg-background/50 border-muted"
+                    className="bg-background/50 border-muted pointer-events-auto"
                   />
                   <span className="text-muted-foreground">até</span>
                   <Input
@@ -287,7 +270,7 @@ export const AdvancedFilterBar = ({ filters, onFiltersChange, className }: Advan
                       ...filters.priceRange, 
                       max: e.target.value ? parseFloat(e.target.value) : null 
                     })}
-                    className="bg-background/50 border-muted"
+                    className="bg-background/50 border-muted pointer-events-auto"
                   />
                 </div>
               </div>

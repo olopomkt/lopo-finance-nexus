@@ -1,106 +1,97 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { User, Edit, CheckCircle } from 'lucide-react';
-import { PersonalExpense } from '@/types/finance';
+import { Edit, Trash2, User, TrendingDown } from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { PersonalExpense } from '@/types';
 import { useFinanceData } from '@/hooks/useFinanceData';
-import { useUnifiedFilters } from '@/hooks/useUnifiedFilters';
-import { FilterBar } from '@/components/filters/FilterBar';
-import { dateTransformers, formatCurrency } from '@/lib/dateUtils';
 import { toast } from '@/hooks/use-toast';
 
 interface Props {
   onEdit: (expense: PersonalExpense) => void;
+  expenses?: PersonalExpense[];
+  showHeader?: boolean;
 }
 
-export const PersonalExpenseList = ({ onEdit }: Props) => {
-  const { personalExpenses, confirmPayment } = useFinanceData();
-  const { filters, filterTransactions, updateFilter, clearFilters } = useUnifiedFilters();
-  
-  const filteredExpenses = filterTransactions(personalExpenses, 'expense');
+export const PersonalExpenseList = ({ onEdit, expenses, showHeader = false }: Props) => {
+  const { deletePersonalExpense } = useFinanceData();
 
-  const handleConfirmPayment = async (id: string) => {
-    try {
-      await confirmPayment(id, 'personal');
-      toast({
-        title: "Sucesso",
-        description: "Pagamento confirmado com sucesso!"
-      });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao confirmar pagamento",
-        variant: "destructive"
-      });
+  const handleDelete = async (id: string) => {
+    if (confirm('Tem certeza que deseja excluir esta conta?')) {
+      try {
+        deletePersonalExpense(id);
+        toast({ title: "Sucesso", description: "Conta excluída com sucesso!" });
+      } catch (error) {
+        toast({ 
+          title: "Erro", 
+          description: "Erro ao excluir conta", 
+          variant: "destructive" 
+        });
+      }
     }
   };
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold flex items-center gap-2 text-neutral-300">
-          <User className="h-6 w-6" />
-          Contas Pessoais ({filteredExpenses.length})
-        </h2>
-      </div>
-
-      <FilterBar filters={filters} onFilterChange={updateFilter} onClearFilters={clearFilters} showPaymentMethodFilter={false} />
-
-      <div className="grid gap-4">
-        {filteredExpenses.length === 0 ? (
-          <Card className="border-[2.5px] border-white bg-card/50 backdrop-blur-sm">
-            <CardContent className="p-6 text-center">
-              <p className="text-muted-foreground">Nenhuma conta encontrada</p>
-            </CardContent>
-          </Card>
+    <div className="space-y-4">
+      {showHeader && (
+        <h3 className="text-lg font-semibold flex items-center gap-2 text-neon-purple">
+          <User className="h-5 w-5" />
+          <TrendingDown className="h-5 w-5" />
+          Contas Pessoais ({expenses?.length || 0})
+        </h3>
+      )}
+      
+      <AnimatePresence>
+        {!expenses || expenses.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">
+            Nenhuma conta encontrada
+          </p>
         ) : (
-          filteredExpenses.map((expense) => (
-            <Card key={expense.id} className="border-[2.5px] border-white bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-colors">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg text-neutral-300">{expense.name}</CardTitle>
-                    {expense.observation && <p className="text-sm text-muted-foreground">{expense.observation}</p>}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={expense.paid ? "default" : "secondary"} className="text-xs">
-                      {expense.paid ? "Pago" : "Pendente"}
-                    </Badge>
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(expense)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground font-bold">Valor:</span>
-                    <p className="font-semibold text-neon-purple">{formatCurrency(expense.price)}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground font-normal">Data:</span>
-                    <p>{dateTransformers.formatDisplay(expense.paymentDate)}</p>
-                  </div>
-                </div>
-                {!expense.paid && (
-                  <div className="mt-4 flex gap-2">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {expenses.map((expense) => (
+              <motion.div
+                key={expense.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="glass-effect p-4 rounded-lg border border-neon-purple/20 hover:border-neon-purple/40 transition-colors"
+              >
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">{expense.name}</h4>
+                  <p className="text-lg font-bold text-neon-purple">{formatCurrency(expense.price)}</p>
+                  <p className="text-xs text-muted-foreground">{format(expense.paymentDate, 'dd/MM/yyyy', { locale: ptBR })}</p>
+                  {expense.observation && (
+                    <p className="text-xs text-muted-foreground italic">{expense.observation}</p>
+                  )}
+                  <div className="flex gap-2 pt-2">
                     <Button
                       size="sm"
-                      variant="outline"
-                      onClick={() => handleConfirmPayment(expense.id)}
-                      className="text-green-500 border-green-500 hover:bg-green-500/10"
+                      variant="ghost"
+                      onClick={() => onEdit(expense)}
+                      className="h-8 w-8 p-0 hover:bg-neon-purple/20"
                     >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Confirmar Pagamento
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleDelete(expense.id)}
+                      className="h-8 w-8 p-0 hover:bg-red-500/20 hover:text-red-500"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          ))
+                </div>
+              </motion.div>
+            ))}
+          </div>
         )}
-      </div>
+      </AnimatePresence>
     </div>
   );
 };
