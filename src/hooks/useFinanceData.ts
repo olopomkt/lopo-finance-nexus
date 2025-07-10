@@ -97,11 +97,6 @@ export const useFinanceData = () => {
     }
   };
 
-  // Transformar dados recebidos do Supabase - já vêm transformados do useSupabaseData
-  const companyRevenues = supabaseHook.companyRevenues;
-  const companyExpenses = supabaseHook.companyExpenses;
-  const personalExpenses = supabaseHook.personalExpenses;
-
   // Funções de confirmação com transformação correta
   const confirmReceived = async (id: string, receivedDate: Date = new Date()) => {
     try {
@@ -135,9 +130,14 @@ export const useFinanceData = () => {
 
   return {
     // Dados já transformados
-    companyRevenues,
-    companyExpenses,
-    personalExpenses,
+    companyRevenues: supabaseHook.companyRevenues,
+    companyExpenses: supabaseHook.companyExpenses,
+    personalExpenses: supabaseHook.personalExpenses,
+    
+    // Estados
+    isLoading: supabaseHook.isLoading,
+    error: supabaseHook.error,
+    isConnected: supabaseHook.isConnected,
     
     // Ações com transformação de data
     saveRevenue,
@@ -155,7 +155,8 @@ export const useFinanceData = () => {
     // Outras ações
     confirmReceived,
     confirmPayment,
-    isLoading: supabaseHook.isLoading,
-    error: supabaseHook.error
+    
+    // Utilidades
+    fetchAllData: supabaseHook.fetchAllData
   };
 };

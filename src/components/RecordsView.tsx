@@ -7,6 +7,9 @@ import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
 import { useFinanceData } from '@/hooks/useFinanceData';
 import { useGlobalFilters } from '@/contexts/FilterContext';
 import { useFilteredData } from '@/hooks/useFilteredData';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface Props {
   onEditRevenue: (revenue: CompanyRevenue) => void;
@@ -19,7 +22,7 @@ export const RecordsView = ({
   onEditCompanyExpense, 
   onEditPersonalExpense 
 }: Props) => {
-  const { companyRevenues, companyExpenses, personalExpenses } = useFinanceData();
+  const { companyRevenues, companyExpenses, personalExpenses, isLoading, error, isConnected } = useFinanceData();
   const { filters } = useGlobalFilters();
   
   const { filteredRevenues, filteredCompanyExpenses, filteredPersonalExpenses } = useFilteredData(
@@ -29,8 +32,59 @@ export const RecordsView = ({
     filters
   );
 
+  // Show loading state
+  if (isLoading && companyRevenues.length === 0 && companyExpenses.length === 0 && personalExpenses.length === 0) {
+    return (
+      <div className="space-y-6">
+        <AdvancedFilterBar />
+        <div className="flex items-center justify-center py-12">
+          <LoadingSpinner />
+          <span className="ml-2 text-muted-foreground">Carregando dados...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Connection Status */}
+      {!isConnected && (
+        <Alert variant="destructive">
+          <WifiOff className="h-4 w-4" />
+          <AlertDescription>
+            Conexão perdida. Tentando reconectar...
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Connection Status Indicator */}
+      <div className="flex items-center justify-between">
+        <div></div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {isConnected ? (
+            <>
+              <Wifi className="h-3 w-3 text-green-500" />
+              <span>Conectado</span>
+            </>
+          ) : (
+            <>
+              <WifiOff className="h-3 w-3 text-red-500" />
+              <span>Desconectado</span>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* Filtro Unificado - UM ÚNICO para todas as categorias */}
       <AdvancedFilterBar />
       
@@ -41,6 +95,7 @@ export const RecordsView = ({
             onEdit={onEditRevenue} 
             revenues={filteredRevenues}
             showHeader={true}
+            isLoading={isLoading}
           />
         </div>
 
@@ -50,6 +105,7 @@ export const RecordsView = ({
             onEdit={onEditCompanyExpense}
             expenses={filteredCompanyExpenses}
             showHeader={true}
+            isLoading={isLoading}
           />
         </div>
 
@@ -59,6 +115,7 @@ export const RecordsView = ({
             onEdit={onEditPersonalExpense}
             expenses={filteredPersonalExpenses}
             showHeader={true}
+            isLoading={isLoading}
           />
         </div>
       </div>

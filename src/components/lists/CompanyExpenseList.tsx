@@ -8,27 +8,24 @@ import { ptBR } from 'date-fns/locale';
 import { CompanyExpense } from '@/types';
 import { useFinanceData } from '@/hooks/useFinanceData';
 import { toast } from '@/hooks/use-toast';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface Props {
   onEdit: (expense: CompanyExpense) => void;
   expenses?: CompanyExpense[];
   showHeader?: boolean;
+  isLoading?: boolean;
 }
 
-export const CompanyExpenseList = ({ onEdit, expenses, showHeader = false }: Props) => {
+export const CompanyExpenseList = ({ onEdit, expenses, showHeader = false, isLoading = false }: Props) => {
   const { deleteCompanyExpense } = useFinanceData();
 
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta despesa?')) {
       try {
-        deleteCompanyExpense(id);
-        toast({ title: "Sucesso", description: "Despesa excluída com sucesso!" });
+        await deleteCompanyExpense(id);
       } catch (error) {
-        toast({ 
-          title: "Erro", 
-          description: "Erro ao excluir despesa", 
-          variant: "destructive" 
-        });
+        // Error is already handled in the hook
       }
     }
   };
@@ -37,21 +34,46 @@ export const CompanyExpenseList = ({ onEdit, expenses, showHeader = false }: Pro
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
+  const formatDate = (date: Date | string) => {
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      if (isNaN(dateObj.getTime())) {
+        return 'Data inválida';
+      }
+      return format(dateObj, 'dd/MM/yyyy', { locale: ptBR });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Data inválida';
+    }
+  };
+
   return (
     <div className="space-y-4">
       {showHeader && (
-        <h3 className="text-lg font-semibold flex items-center gap-2 text-red-400">
-          <Building2 className="h-5 w-5" />
-          <TrendingDown className="h-5 w-5" />
-          Despesas Empresariais ({expenses?.length || 0})
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold flex items-center gap-2 text-red-400">
+            <Building2 className="h-5 w-5" />
+            <TrendingDown className="h-5 w-5" />
+            Despesas Empresariais ({expenses?.length || 0})
+          </h3>
+          {isLoading && <LoadingSpinner size="sm" />}
+        </div>
       )}
       
       <AnimatePresence>
         {!expenses || expenses.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">
-            Nenhuma despesa encontrada
-          </p>
+          <div className="text-center py-8">
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <LoadingSpinner />
+                <span className="text-muted-foreground">Carregando despesas...</span>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">
+                Nenhuma despesa encontrada
+              </p>
+            )}
+          </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {expenses.map((expense) => (
@@ -70,10 +92,15 @@ export const CompanyExpenseList = ({ onEdit, expenses, showHeader = false }: Pro
                     </Badge>
                   </div>
                   <p className="text-lg font-bold text-red-400">{formatCurrency(expense.price)}</p>
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{expense.paymentMethod}</span>
-                          <span>{expense.paymentDate ? format(new Date(expense.paymentDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Data não informada'}</span>
-                        </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{expense.paymentMethod}</span>
+                    <span>{formatDate(expense.paymentDate)}</span>
+                  </div>
+                  {expense.paid && (
+                    <Badge variant="outline" className="text-green-500 border-green-500/50">
+                      Pago
+                    </Badge>
+                  )}
                   <div className="flex gap-2 pt-2">
                     <Button
                       size="sm"

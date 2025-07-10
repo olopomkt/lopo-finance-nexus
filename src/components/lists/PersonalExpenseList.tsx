@@ -1,33 +1,31 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, User, TrendingDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PersonalExpense } from '@/types';
 import { useFinanceData } from '@/hooks/useFinanceData';
 import { toast } from '@/hooks/use-toast';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 interface Props {
   onEdit: (expense: PersonalExpense) => void;
   expenses?: PersonalExpense[];
   showHeader?: boolean;
+  isLoading?: boolean;
 }
 
-export const PersonalExpenseList = ({ onEdit, expenses, showHeader = false }: Props) => {
+export const PersonalExpenseList = ({ onEdit, expenses, showHeader = false, isLoading = false }: Props) => {
   const { deletePersonalExpense } = useFinanceData();
 
   const handleDelete = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta conta?')) {
       try {
-        deletePersonalExpense(id);
-        toast({ title: "Sucesso", description: "Conta excluída com sucesso!" });
+        await deletePersonalExpense(id);
       } catch (error) {
-        toast({ 
-          title: "Erro", 
-          description: "Erro ao excluir conta", 
-          variant: "destructive" 
-        });
+        // Error is already handled in the hook
       }
     }
   };
@@ -36,21 +34,46 @@ export const PersonalExpenseList = ({ onEdit, expenses, showHeader = false }: Pr
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
+  const formatDate = (date: Date | string) => {
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      if (isNaN(dateObj.getTime())) {
+        return 'Data inválida';
+      }
+      return format(dateObj, 'dd/MM/yyyy', { locale: ptBR });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Data inválida';
+    }
+  };
+
   return (
     <div className="space-y-4">
       {showHeader && (
-        <h3 className="text-lg font-semibold flex items-center gap-2 text-neon-purple">
-          <User className="h-5 w-5" />
-          <TrendingDown className="h-5 w-5" />
-          Contas Pessoais ({expenses?.length || 0})
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold flex items-center gap-2 text-neon-purple">
+            <User className="h-5 w-5" />
+            <TrendingDown className="h-5 w-5" />
+            Contas Pessoais ({expenses?.length || 0})
+          </h3>
+          {isLoading && <LoadingSpinner size="sm" />}
+        </div>
       )}
       
       <AnimatePresence>
         {!expenses || expenses.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">
-            Nenhuma conta encontrada
-          </p>
+          <div className="text-center py-8">
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <LoadingSpinner />
+                <span className="text-muted-foreground">Carregando contas...</span>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">
+                Nenhuma conta encontrada
+              </p>
+            )}
+          </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {expenses.map((expense) => (
@@ -65,10 +88,15 @@ export const PersonalExpenseList = ({ onEdit, expenses, showHeader = false }: Pr
                   <h4 className="font-semibold text-sm">{expense.name}</h4>
                   <p className="text-lg font-bold text-neon-purple">{formatCurrency(expense.price)}</p>
                   <p className="text-xs text-muted-foreground">
-                    {expense.paymentDate ? format(new Date(expense.paymentDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Data não informada'}
+                    {formatDate(expense.paymentDate)}
                   </p>
                   {expense.observation && (
                     <p className="text-xs text-muted-foreground italic">{expense.observation}</p>
+                  )}
+                  {expense.paid && (
+                    <Badge variant="outline" className="text-green-500 border-green-500/50">
+                      Pago
+                    </Badge>
                   )}
                   <div className="flex gap-2 pt-2">
                     <Button
