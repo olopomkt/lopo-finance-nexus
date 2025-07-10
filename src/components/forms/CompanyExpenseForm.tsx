@@ -40,11 +40,15 @@ export const CompanyExpenseForm = ({ expense, onSave, onCancel }: CompanyExpense
 
   const onSubmit = async (data: any) => {
     try {
+      const processedData = {
+        ...data,
+        price: parseFloat(data.price) || 0
+      };
       if (expense) {
-        await updateCompanyExpense(expense.id, data);
+        await updateCompanyExpense(expense.id, processedData);
         toast({ title: "Sucesso", description: "Despesa atualizada com sucesso!" });
       } else {
-        await saveCompanyExpense(data);
+        await saveCompanyExpense(processedData);
         toast({ title: "Sucesso", description: "Despesa cadastrada com sucesso!" });
       }
       

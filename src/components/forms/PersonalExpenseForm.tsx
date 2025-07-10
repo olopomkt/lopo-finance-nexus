@@ -39,11 +39,15 @@ export const PersonalExpenseForm = ({ expense, onSave, onCancel }: PersonalExpen
 
   const onSubmit = async (data: any) => {
     try {
+      const processedData = {
+        ...data,
+        price: parseFloat(data.price) || 0
+      };
       if (expense) {
-        await updatePersonalExpense(expense.id, data);
+        await updatePersonalExpense(expense.id, processedData);
         toast({ title: "Sucesso", description: "Conta pessoal atualizada com sucesso!" });
       } else {
-        await savePersonalExpense(data);
+        await savePersonalExpense(processedData);
         toast({ title: "Sucesso", description: "Conta pessoal cadastrada com sucesso!" });
       }
       

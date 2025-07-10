@@ -47,6 +47,7 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
     try {
       const processedData = {
         ...data,
+        price: parseFloat(data.price) || 0,
         accountType: data.accountType || 'Marlon Lopo'
       };
 
@@ -273,6 +274,7 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
                           selected={field.value}
                           onSelect={field.onChange}
                           initialFocus
+                          className="pointer-events-auto"
                         />
                       </PopoverContent>
                     </Popover>
@@ -334,6 +336,7 @@ export const CompanyRevenueForm = ({ revenue, onSave, onCancel }: Props) => {
                               selected={field.value}
                               onSelect={field.onChange}
                               initialFocus
+                              className="pointer-events-auto"
                             />
                           </PopoverContent>
                         </Popover>

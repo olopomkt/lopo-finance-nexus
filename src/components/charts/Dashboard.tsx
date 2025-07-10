@@ -5,27 +5,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
-import { storageService } from '@/lib/storage';
+import { useFinanceData } from '@/hooks/useFinanceData';
 import { format, getMonth, getYear } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export const Dashboard = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+  const { companyRevenues, companyExpenses, personalExpenses } = useFinanceData();
   
-  const revenues = storageService.getCompanyRevenues();
-  const companyExpenses = storageService.getCompanyExpenses();
-  const personalExpenses = storageService.getPersonalExpenses();
+  const revenues = companyRevenues;
+  const companyExpensesList = companyExpenses;
+  const personalExpensesList = personalExpenses;
 
   const availableYears = useMemo(() => {
     const allDates = [
       ...revenues.map(r => r.paymentDate),
-      ...companyExpenses.map(e => e.paymentDate),
-      ...personalExpenses.map(e => e.paymentDate)
+      ...companyExpensesList.map(e => e.paymentDate),
+      ...personalExpensesList.map(e => e.paymentDate)
     ];
     
     const years = [...new Set(allDates.map(date => getYear(date)))].sort((a, b) => b - a);
     return years.length > 0 ? years : [new Date().getFullYear()];
-  }, [revenues, companyExpenses, personalExpenses]);
+  }, [revenues, companyExpensesList, personalExpensesList]);
 
   const monthlyData = useMemo(() => {
     const months = [
@@ -38,11 +39,11 @@ export const Dashboard = () => {
         .filter(r => getYear(r.paymentDate) === parseInt(selectedYear) && getMonth(r.paymentDate) === index)
         .reduce((sum, r) => sum + r.price, 0);
 
-      const monthCompanyExpenses = companyExpenses
+      const monthCompanyExpenses = companyExpensesList
         .filter(e => getYear(e.paymentDate) === parseInt(selectedYear) && getMonth(e.paymentDate) === index)
         .reduce((sum, e) => sum + e.price, 0);
 
-      const monthPersonalExpenses = personalExpenses
+      const monthPersonalExpenses = personalExpensesList
         .filter(e => getYear(e.paymentDate) === parseInt(selectedYear) && getMonth(e.paymentDate) === index)
         .reduce((sum, e) => sum + e.price, 0);
 
@@ -55,15 +56,15 @@ export const Dashboard = () => {
         lucro: monthRevenues - totalExpenses
       };
     });
-  }, [revenues, companyExpenses, personalExpenses, selectedYear]);
+  }, [revenues, companyExpensesList, personalExpensesList, selectedYear]);
 
   const totalRevenue = revenues
     .filter(r => getYear(r.paymentDate) === parseInt(selectedYear))
     .reduce((sum, r) => sum + r.price, 0);
 
   const totalExpenses = [
-    ...companyExpenses.filter(e => getYear(e.paymentDate) === parseInt(selectedYear)),
-    ...personalExpenses.filter(e => getYear(e.paymentDate) === parseInt(selectedYear))
+    ...companyExpensesList.filter(e => getYear(e.paymentDate) === parseInt(selectedYear)),
+    ...personalExpensesList.filter(e => getYear(e.paymentDate) === parseInt(selectedYear))
   ].reduce((sum, e) => sum + e.price, 0);
 
   const profit = totalRevenue - totalExpenses;
@@ -73,11 +74,11 @@ export const Dashboard = () => {
   };
 
   const expensesByCategory = useMemo(() => {
-    const companyTotal = companyExpenses
+    const companyTotal = companyExpensesList
       .filter(e => getYear(e.paymentDate) === parseInt(selectedYear))
       .reduce((sum, e) => sum + e.price, 0);
     
-    const personalTotal = personalExpenses
+    const personalTotal = personalExpensesList
       .filter(e => getYear(e.paymentDate) === parseInt(selectedYear))
       .reduce((sum, e) => sum + e.price, 0);
 
@@ -85,7 +86,7 @@ export const Dashboard = () => {
       { name: 'Empresariais', value: companyTotal, color: '#ef4444' },
       { name: 'Pessoais', value: personalTotal, color: '#8b5cf6' }
     ].filter(item => item.value > 0);
-  }, [companyExpenses, personalExpenses, selectedYear]);
+  }, [companyExpensesList, personalExpensesList, selectedYear]);
 
   const COLORS = ['#ef4444', '#8b5cf6'];
 
