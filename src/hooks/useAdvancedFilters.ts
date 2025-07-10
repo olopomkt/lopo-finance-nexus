@@ -1,9 +1,8 @@
-
 import { useState, useMemo } from 'react';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types/finance';
-import { FilterState } from '@/components/filters/AdvancedFilterBar';
+import { GlobalFilterState } from '@/contexts/FilterContext';
 
-const defaultFilters: FilterState = {
+const defaultFilters: GlobalFilterState = {
   searchTerm: '',
   paymentMethod: 'all',
   contractType: 'all',
@@ -11,7 +10,9 @@ const defaultFilters: FilterState = {
   accountType: 'all',
   status: 'all',
   dateRange: { start: null, end: null },
-  priceRange: { min: null, max: null }
+  priceRange: { min: null, max: null },
+  sortBy: 'date',
+  sortOrder: 'desc'
 };
 
 interface UseAdvancedFiltersProps {
@@ -25,7 +26,7 @@ export const useAdvancedFilters = ({
   companyExpenses,
   personalExpenses
 }: UseAdvancedFiltersProps) => {
-  const [filters, setFilters] = useState<FilterState>(defaultFilters);
+  const [filters, setFilters] = useState<GlobalFilterState>(defaultFilters);
 
   const filteredData = useMemo(() => {
     // Filtrar receitas
