@@ -523,9 +523,11 @@ export const useSupabaseData = () => {
     }
   }, [updateCompanyExpense, updatePersonalExpense]);
 
-  // Set up real-time subscriptions with better error handling
+  // Set up real-time subscriptions with better error handling and prevent multiple subscriptions
   useEffect(() => {
     console.log('Setting up real-time subscriptions');
+    let isSubscribed = true;
+    
     const channel = supabase
       .channel('finance-data-changes')
       .on(
@@ -537,7 +539,9 @@ export const useSupabaseData = () => {
         },
         (payload) => {
           console.log('Real-time change in company_revenues:', payload);
-          setTimeout(() => fetchAllData(), 100);
+          if (isSubscribed) {
+            setTimeout(() => fetchAllData(), 100);
+          }
         }
       )
       .on(
@@ -549,7 +553,9 @@ export const useSupabaseData = () => {
         },
         (payload) => {
           console.log('Real-time change in company_expenses:', payload);
-          setTimeout(() => fetchAllData(), 100);
+          if (isSubscribed) {
+            setTimeout(() => fetchAllData(), 100);
+          }
         }
       )
       .on(
@@ -561,7 +567,9 @@ export const useSupabaseData = () => {
         },
         (payload) => {
           console.log('Real-time change in personal_expenses:', payload);
-          setTimeout(() => fetchAllData(), 100);
+          if (isSubscribed) {
+            setTimeout(() => fetchAllData(), 100);
+          }
         }
       )
       .subscribe((status) => {
@@ -570,15 +578,16 @@ export const useSupabaseData = () => {
 
     return () => {
       console.log('Cleaning up real-time subscriptions');
+      isSubscribed = false;
       supabase.removeChannel(channel);
     };
-  }, [fetchAllData]);
+  }, []);
 
   // Fetch data on mount
   useEffect(() => {
     console.log('Fetching initial data');
     fetchAllData();
-  }, [fetchAllData]);
+  }, []);
 
   return {
     // Data

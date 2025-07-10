@@ -70,10 +70,10 @@ export const CompanyExpenseList = ({ onEdit, expenses, showHeader = false }: Pro
                     </Badge>
                   </div>
                   <p className="text-lg font-bold text-red-400">{formatCurrency(expense.price)}</p>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{expense.paymentMethod}</span>
-                    <span>{format(expense.paymentDate, 'dd/MM/yyyy', { locale: ptBR })}</span>
-                  </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{expense.paymentMethod}</span>
+                          <span>{expense.paymentDate ? format(new Date(expense.paymentDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Data não informada'}</span>
+                        </div>
                   <div className="flex gap-2 pt-2">
                     <Button
                       size="sm"

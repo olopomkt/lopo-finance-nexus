@@ -70,10 +70,10 @@ export const RevenueList = ({ onEdit, revenues, showHeader = false }: Props) => 
                   </div>
                   <p className="text-xs text-muted-foreground">{revenue.service}</p>
                   <p className="text-lg font-bold text-neon-blue">{formatCurrency(revenue.price)}</p>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{revenue.paymentMethod}</span>
-                    <span>{format(revenue.paymentDate, 'dd/MM/yyyy', { locale: ptBR })}</span>
-                  </div>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{revenue.paymentMethod}</span>
+                          <span>{revenue.paymentDate ? format(new Date(revenue.paymentDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Data não informada'}</span>
+                        </div>
                   <div className="flex gap-2 pt-2">
                     <Button
                       size="sm"

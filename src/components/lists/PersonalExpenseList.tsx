@@ -64,7 +64,9 @@ export const PersonalExpenseList = ({ onEdit, expenses, showHeader = false }: Pr
                 <div className="space-y-2">
                   <h4 className="font-semibold text-sm">{expense.name}</h4>
                   <p className="text-lg font-bold text-neon-purple">{formatCurrency(expense.price)}</p>
-                  <p className="text-xs text-muted-foreground">{format(expense.paymentDate, 'dd/MM/yyyy', { locale: ptBR })}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {expense.paymentDate ? format(new Date(expense.paymentDate), 'dd/MM/yyyy', { locale: ptBR }) : 'Data não informada'}
+                  </p>
                   {expense.observation && (
                     <p className="text-xs text-muted-foreground italic">{expense.observation}</p>
                   )}
