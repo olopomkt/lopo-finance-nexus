@@ -5,7 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { usePasswordAuth } from "@/hooks/usePasswordAuth";
-import { PasswordScreen } from "@/components/PasswordScreen"; // O nome do seu componente
+import { PasswordScreen } from "@/components/PasswordScreen";
+import { PWAStatus } from "@/components/PWAStatus";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +31,7 @@ const AppContent = () => {
 
   return (
     <BrowserRouter>
+      <PWAStatus />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="*" element={<NotFound />} />

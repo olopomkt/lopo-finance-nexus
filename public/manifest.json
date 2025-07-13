@@ -1,0 +1,92 @@
+{
+  "name": "Lopo Finance - Gestão Financeira",
+  "short_name": "Lopo Finance",
+  "description": "Sistema completo de gestão financeira empresarial e pessoal com controle de receitas, despesas e relatórios",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#10b981",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt-BR",
+  "categories": ["finance", "business", "productivity"],
+  "screenshots": [
+    {
+      "src": "/lovable-uploads/896be68a-e239-4c96-8349-0fedea20a831.png",
+      "sizes": "1080x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Lopo Finance Dashboard"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nova Despesa",
+      "short_name": "Despesa",
+      "description": "Adicionar nova despesa",
+      "url": "/?action=new-expense",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Nova Receita",
+      "short_name": "Receita",
+      "description": "Adicionar nova receita",
+      "url": "/?action=new-revenue",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Relatórios",
+      "short_name": "Relatórios",
+      "description": "Ver relatórios financeiros",
+      "url": "/?view=reports",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "display_override": ["window-controls-overlay", "standalone"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}
