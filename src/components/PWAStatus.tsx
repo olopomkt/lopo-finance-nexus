@@ -67,14 +67,15 @@ export const PWAStatus = () => {
   // Show online status when back online
   if (isOnline && !showOfflineBanner) {
     return (
-      <Alert className="fixed top-4 left-4 right-4 z-50 border-green-500 bg-green-50 dark:bg-green-950 animate-in slide-in-from-top-2">
-        <Wifi className="h-4 w-4" />
+      <Alert className="fixed top-4 left-4 right-4 max-w-md mx-auto z-50 border-green-500 bg-green-600 text-white shadow-lg animate-in slide-in-from-top-2">
+        <Wifi className="h-4 w-4 text-white" />
         <AlertDescription className="flex items-center justify-between">
-          <span>Conectado! Todas as funcionalidades estão disponíveis.</span>
+          <span className="text-white font-medium">Conectado! Todas as funcionalidades estão disponíveis.</span>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowOfflineBanner(false)}
+            className="text-white hover:bg-green-700 p-1"
           >
             <X className="h-4 w-4" />
           </Button>
