@@ -31,18 +31,18 @@ export const PWAStatus = () => {
   // Show install prompt for installable PWA
   if (isInstallable && !isInstalled && showInstallBanner) {
     return (
-      <Alert className="fixed top-4 left-4 right-4 z-50 border-green-500 bg-green-50 dark:bg-green-950">
-        <Smartphone className="h-4 w-4" />
-        <AlertDescription className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span>📱 Instale o Lopo Finance para acesso rápido!</span>
+      <Alert className="fixed top-4 left-4 right-4 max-w-md mx-auto z-50 border-green-500 bg-green-600 text-white shadow-lg">
+        <Smartphone className="h-4 w-4 text-white" />
+        <AlertDescription className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+            <span className="text-sm font-medium text-white">📱 Instale o Lopo Finance!</span>
             <Button
               onClick={() => {
                 showInstallPrompt();
                 setShowInstallBanner(false);
               }}
               size="sm"
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-white text-green-600 hover:bg-gray-100 border-0"
             >
               <Download className="h-4 w-4 mr-2" />
               Instalar
@@ -55,6 +55,7 @@ export const PWAStatus = () => {
               dismissPrompt();
               setShowInstallBanner(false);
             }}
+            className="text-white hover:bg-green-700 p-1"
           >
             <X className="h-4 w-4" />
           </Button>
