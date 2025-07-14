@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePWA } from '@/hooks/usePWA';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -7,7 +7,24 @@ import { Download, Wifi, WifiOff, Smartphone, X } from 'lucide-react';
 export const PWAStatus = () => {
   const { isInstallable, isInstalled, isOnline, showInstallPrompt, dismissPrompt } = usePWA();
   const [showOfflineBanner, setShowOfflineBanner] = useState(!isOnline);
-  const [showInstallBanner, setShowInstallBanner] = useState(isInstallable && !isInstalled);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [showOnlineBanner, setShowOnlineBanner] = useState(false);
+
+  // Update install banner when PWA state changes
+  useEffect(() => {
+    setShowInstallBanner(isInstallable && !isInstalled);
+  }, [isInstallable, isInstalled]);
+
+  // Show online banner when connection is restored
+  useEffect(() => {
+    if (isOnline && showOfflineBanner) {
+      setShowOfflineBanner(false);
+      setShowOnlineBanner(true);
+      // Auto-hide online banner after 3 seconds
+      const timer = setTimeout(() => setShowOnlineBanner(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isOnline, showOfflineBanner]);
 
   // Show offline status
   if (!isOnline && showOfflineBanner) {
@@ -64,16 +81,17 @@ export const PWAStatus = () => {
   }
 
   // Show online status when back online
-  if (isOnline && !showOfflineBanner) {
+  if (showOnlineBanner) {
     return (
-      <Alert className="fixed top-4 left-4 right-4 z-50 border-green-500 bg-green-50 dark:bg-green-950 animate-in slide-in-from-top-2">
-        <Wifi className="h-4 w-4" />
+      <Alert className="fixed top-4 left-4 right-4 z-50 border-green-600 bg-green-600 text-white animate-in slide-in-from-top-2">
+        <Wifi className="h-4 w-4 text-white" />
         <AlertDescription className="flex items-center justify-between">
-          <span>Conectado! Todas as funcionalidades estão disponíveis.</span>
+          <span className="text-white font-medium">Conectado! Todas as funcionalidades estão disponíveis.</span>
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowOfflineBanner(false)}
+            className="text-white hover:bg-green-700 hover:text-white"
+            onClick={() => setShowOnlineBanner(false)}
           >
             <X className="h-4 w-4" />
           </Button>

@@ -21,28 +21,28 @@
   ],
   "icons": [
     {
-      "src": "/icons/icon-144x144.png",
+      "src": "/favicon.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-192x192.png",
+      "src": "/favicon.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512x512.png",
+      "src": "/favicon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "/favicon.png",
-      "sizes": "32x32",
-      "type": "image/png",
-      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -53,7 +53,7 @@
       "url": "/?action=new-expense",
       "icons": [
         {
-          "src": "/icons/icon-192x192.png",
+          "src": "/favicon.png",
           "sizes": "192x192"
         }
       ]
@@ -65,7 +65,7 @@
       "url": "/?action=new-revenue",
       "icons": [
         {
-          "src": "/icons/icon-192x192.png",
+          "src": "/favicon.png",
           "sizes": "192x192"
         }
       ]
@@ -77,7 +77,7 @@
       "url": "/?view=reports",
       "icons": [
         {
-          "src": "/icons/icon-192x192.png",
+          "src": "/favicon.png",
           "sizes": "192x192"
         }
       ]

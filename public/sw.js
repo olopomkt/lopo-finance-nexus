@@ -15,9 +15,7 @@ const APP_SHELL = [
 
 // Recursos estáticos
 const STATIC_ASSETS = [
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
-  '/icons/icon-144x144.png'
+  '/favicon.png'
 ];
 
 // URLs do Supabase para cache especial
