@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface PWAInstallPrompt extends Event {
   prompt(): Promise<void>;
@@ -24,16 +24,39 @@ export const usePWA = (): PWAStatus => {
     const checkInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isIOSStandalone = (window.navigator as any).standalone === true;
-      setIsInstalled(isStandalone || isIOSStandalone);
+      const isInstalled = isStandalone || isIOSStandalone;
+      setIsInstalled(isInstalled);
+      
+      // Debug logging
+      console.log('PWA Status Check:', {
+        isStandalone,
+        isIOSStandalone,
+        isInstalled,
+        userAgent: navigator.userAgent,
+        displayMode: window.matchMedia('(display-mode: standalone)').matches
+      });
     };
 
     checkInstalled();
+    
+    // Force check for installability after initial load
+    setTimeout(() => {
+      if (!isInstalled && !deferredPrompt) {
+        console.log('Checking PWA installability...');
+        // Trigger installability check
+        window.dispatchEvent(new Event('beforeinstallprompt'));
+      }
+    }, 2000);
 
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('beforeinstallprompt event triggered', e);
       e.preventDefault();
       setDeferredPrompt(e as PWAInstallPrompt);
       setIsInstallable(true);
+      
+      // Store the event for later use
+      (window as any).deferredPrompt = e;
     };
 
     // Listen for app installed

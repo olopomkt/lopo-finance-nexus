@@ -1,47 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="/favicon.png" type="image/png">
-    <title>Lopo Finance</title>
-    <meta name="description" content="Sistema de Gestão Financeira Empresarial e Pessoal" />
+    <title>Lopo Finance - Gestão Financeira</title>
+    <meta name="description" content="Sistema completo de gestão financeira empresarial e pessoal com controle de receitas, despesas e relatórios" />
     <meta name="author" content="Lopo Finance" />
+    <meta name="keywords" content="finanças, gestão financeira, controle financeiro, receitas, despesas" />
     
-    <!-- PWA Meta Tags -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#10b981">
-    <meta name="background-color" content="#0f172a">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#10b981" />
     
-    <!-- iOS Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Lopo Finance">
-    <link rel="apple-touch-icon" href="/favicon.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="/favicon.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="/favicon.png">
+    <!-- PWA iOS Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Lopo Finance" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
     
-    <!-- Windows Meta Tags -->
-    <meta name="msapplication-TileImage" content="/favicon.png">
-    <meta name="msapplication-TileColor" content="#10b981">
-    <meta name="msapplication-config" content="none">
+    <!-- PWA Windows Support -->
+    <meta name="msapplication-TileColor" content="#10b981" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
     
-    <!-- Additional PWA Meta Tags -->
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Lopo Finance">
-    
-    <!-- Preload Critical Resources -->
-    <link rel="preload" href="/src/main.tsx" as="script">
-    <link rel="preload" href="/src/index.css" as="style">
+    <!-- Preload critical resources -->
+    <link rel="modulepreload" href="/src/main.tsx" />
+    <link rel="preload" href="/src/index.css" as="style" />
 
-    <meta property="og:title" content="lopo-finance-nexus" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:url" content="https://lopofinance.com/" />
+    <meta property="og:title" content="Lopo Finance - Gestão Financeira" />
+    <meta property="og:description" content="Sistema completo de gestão financeira empresarial e pessoal" />
+    <meta property="og:image" content="/favicon.png" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://lopofinance.com/" />
+    <meta property="twitter:title" content="Lopo Finance - Gestão Financeira" />
+    <meta property="twitter:description" content="Sistema completo de gestão financeira empresarial e pessoal" />
+    <meta property="twitter:image" content="/favicon.png" />
   </head>
 
   <body>
@@ -75,17 +73,17 @@
             });
         });
 
-        // Listen for controlling service worker changes
+        // Listen for controller change and reload
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-          window.location.reload();
+          if (!window.location.hash.includes('skipReload')) {
+            window.location.reload();
+          }
         });
       }
 
-      // Install prompt will be handled by React component
-
-      // Track install
-      window.addEventListener('appinstalled', (evt) => {
-        console.log('PWA was installed');
+      // Track PWA installation
+      window.addEventListener('appinstalled', () => {
+        console.log('PWA foi instalado com sucesso!');
       });
     </script>
   </body>

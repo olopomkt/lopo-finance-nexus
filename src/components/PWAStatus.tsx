@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePWA } from '@/hooks/usePWA';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -12,8 +12,15 @@ export const PWAStatus = () => {
 
   // Update install banner when PWA state changes
   useEffect(() => {
-    setShowInstallBanner(isInstallable && !isInstalled);
+    const shouldShow = isInstallable && !isInstalled;
+    console.log('PWA Banner Update:', { isInstallable, isInstalled, shouldShow });
+    setShowInstallBanner(shouldShow);
   }, [isInstallable, isInstalled]);
+  
+  // Debug effect to log PWA state
+  useEffect(() => {
+    console.log('PWA State:', { isInstallable, isInstalled, isOnline });
+  }, [isInstallable, isInstalled, isOnline]);
 
   // Show online banner when connection is restored
   useEffect(() => {
