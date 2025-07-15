@@ -1,5 +1,4 @@
 import React from "react";
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { usePasswordAuth } from "@/hooks/usePasswordAuth";
@@ -40,7 +39,6 @@ const AppContent = () => {
 // O resto do arquivo não muda...
 const App = () => (
   <>
-    <Toaster />
     <Sonner />
     <AppContent />
   </>
