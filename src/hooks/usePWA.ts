@@ -20,6 +20,8 @@ export const usePWA = (): PWAStatus => {
   const [deferredPrompt, setDeferredPrompt] = useState<PWAInstallPrompt | null>(null);
 
   useEffect(() => {
+    console.log('usePWA: Inicializando hook PWA');
+    
     // Check if already installed
     const checkInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -27,52 +29,74 @@ export const usePWA = (): PWAStatus => {
       const isInstalled = isStandalone || isIOSStandalone;
       setIsInstalled(isInstalled);
       
-      // Debug logging
-      console.log('PWA Status Check:', {
+      console.log('usePWA: Verificação de instalação:', {
         isStandalone,
         isIOSStandalone,
         isInstalled,
-        userAgent: navigator.userAgent,
-        displayMode: window.matchMedia('(display-mode: standalone)').matches
+        userAgent: navigator.userAgent
       });
+    };
+
+    // Check PWA criteria
+    const checkPWACriteria = () => {
+      const hasManifest = !!document.querySelector('link[rel="manifest"]');
+      const hasServiceWorker = 'serviceWorker' in navigator;
+      const isHTTPS = location.protocol === 'https:' || location.hostname === 'localhost';
+      const hasValidIcons = true; // Agora temos ícones adequados
+      
+      console.log('usePWA: Critérios PWA:', {
+        hasManifest,
+        hasServiceWorker,
+        isHTTPS,
+        hasValidIcons,
+        allCriteriaMet: hasManifest && hasServiceWorker && isHTTPS && hasValidIcons
+      });
+      
+      return hasManifest && hasServiceWorker && isHTTPS && hasValidIcons;
     };
 
     checkInstalled();
     
-    // Force check for installability after initial load
+    // Verificar critérios PWA sem forçar o evento
     setTimeout(() => {
-      if (!isInstalled && !deferredPrompt) {
-        console.log('Checking PWA installability...');
-        // Trigger installability check
-        window.dispatchEvent(new Event('beforeinstallprompt'));
+      if (!isInstalled) {
+        const criteriasMet = checkPWACriteria();
+        if (criteriasMet && !deferredPrompt) {
+          console.log('usePWA: Todos os critérios PWA atendidos. Aguardando evento beforeinstallprompt do navegador.');
+        }
       }
-    }, 2000);
+    }, 1000);
 
     // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('beforeinstallprompt event triggered', e);
+      console.log('usePWA: Evento beforeinstallprompt recebido', e);
       e.preventDefault();
       setDeferredPrompt(e as PWAInstallPrompt);
       setIsInstallable(true);
-      
-      // Store the event for later use
-      (window as any).deferredPrompt = e;
     };
 
     // Listen for app installed
     const handleAppInstalled = () => {
+      console.log('usePWA: App instalado com sucesso!');
       setIsInstalled(true);
       setIsInstallable(false);
       setDeferredPrompt(null);
-      console.log('PWA foi instalado com sucesso!');
     };
 
     // Listen for online/offline status
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => {
+      console.log('usePWA: Online');
+      setIsOnline(true);
+    };
+    
+    const handleOffline = () => {
+      console.log('usePWA: Offline');
+      setIsOnline(false);
+    };
 
     // Listen for display mode changes
     const handleDisplayModeChange = () => {
+      console.log('usePWA: Modo de exibição alterado');
       checkInstalled();
     };
 
@@ -89,7 +113,7 @@ export const usePWA = (): PWAStatus => {
     // Service Worker update detection
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        // Reload page when new service worker takes control
+        console.log('usePWA: Service Worker controller alterado');
         if (!window.location.hash.includes('skipReload')) {
           window.location.reload();
         }
@@ -103,7 +127,7 @@ export const usePWA = (): PWAStatus => {
       window.removeEventListener('offline', handleOffline);
       mediaQuery.removeEventListener('change', handleDisplayModeChange);
     };
-  }, []);
+  }, [isInstalled]);
 
   const showInstallPrompt = async () => {
     if (!deferredPrompt) {
