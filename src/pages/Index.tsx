@@ -14,6 +14,7 @@ import { PersonalExpenseForm } from '@/components/forms/PersonalExpenseForm';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
 import { StarBorder } from '@/components/ui/star-border';
 import { FilterProvider } from '@/contexts/FilterContext';
+import { PWAInstaller } from '@/components/PWAInstaller';
 
 const Index = () => {
   const [activeForm, setActiveForm] = useState<'revenue' | 'company-expense' | 'personal-expense' | null>(null);
@@ -153,6 +154,9 @@ const Index = () => {
             )}
           </AnimatePresence>
         </div>
+        
+        {/* PWA Installer */}
+        <PWAInstaller />
       </div>
     </FilterProvider>
   );

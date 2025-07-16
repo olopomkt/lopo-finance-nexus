@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LopoFinance - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Open Sans', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .offline-container {
+            max-width: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+        }
+        
+        .offline-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            background: linear-gradient(135deg, #8B5CF6, #00D4FF);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #8B5CF6, #00D4FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+        
+        p {
+            font-size: 16px;
+            color: #cccccc;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .retry-button {
+            background: linear-gradient(135deg, #8B5CF6, #00D4FF);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .retry-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4);
+        }
+        
+        .features-list {
+            text-align: left;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .features-list h3 {
+            color: #8B5CF6;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .features-list ul {
+            list-style: none;
+        }
+        
+        .features-list li {
+            padding: 8px 0;
+            color: #aaaaaa;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .features-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #00D4FF;
+            font-weight: bold;
+        }
+        
+        .connection-status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(255, 106, 110, 0.1);
+            border: 1px solid rgba(255, 106, 110, 0.3);
+        }
+        
+        .connection-status.online {
+            background: rgba(6, 255, 165, 0.1);
+            border: 1px solid rgba(6, 255, 165, 0.3);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff6a6e;
+            margin-right: 8px;
+            animation: blink 1.5s infinite;
+        }
+        
+        .status-indicator.online {
+            background: #06ffa5;
+            animation: none;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">
+            📊
+        </div>
+        
+        <h1>LopoFinance</h1>
+        <p>Você está offline no momento. Verifique sua conexão com a internet para acessar todas as funcionalidades do sistema.</p>
+        
+        <button class="retry-button" onclick="window.location.reload()">
+            Tentar Novamente
+        </button>
+        
+        <div class="connection-status" id="connectionStatus">
+            <span class="status-indicator" id="statusIndicator"></span>
+            <span id="statusText">Sem conexão com a internet</span>
+        </div>
+        
+        <div class="features-list">
+            <h3>Recursos Disponíveis Online:</h3>
+            <ul>
+                <li>Dashboard financeiro completo</li>
+                <li>Gestão de receitas e despesas</li>
+                <li>Relatórios e análises</li>
+                <li>Sincronização em tempo real</li>
+                <li>Backup automático na nuvem</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Verificar status da conexão
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connectionStatus');
+            const indicatorElement = document.getElementById('statusIndicator');
+            const textElement = document.getElementById('statusText');
+            
+            if (navigator.onLine) {
+                statusElement.classList.add('online');
+                indicatorElement.classList.add('online');
+                textElement.textContent = 'Conexão detectada - Clique em "Tentar Novamente"';
+            } else {
+                statusElement.classList.remove('online');
+                indicatorElement.classList.remove('online');
+                textElement.textContent = 'Sem conexão com a internet';
+            }
+        }
+        
+        // Verificar conexão periodicamente
+        setInterval(updateConnectionStatus, 2000);
+        updateConnectionStatus();
+        
+        // Event listeners para mudanças de conexão
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        
+        // Auto-reload quando voltar online
+        window.addEventListener('online', () => {
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
