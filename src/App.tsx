@@ -35,11 +35,8 @@ const AppContent = () => {
   );
 };
 
-// O resto do arquivo não muda...
-const App = () => (
-  <>
-    <AppContent />
-  </>
-);
+const App = () => {
+  return <AppContent />;
+};
 
 export default App;
