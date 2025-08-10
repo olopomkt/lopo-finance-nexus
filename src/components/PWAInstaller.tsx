@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,39 +26,59 @@ export const PWAInstaller: React.FC = () => {
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    // Detectar iOS
+    // Detect iOS
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     setIsIOS(iOS);
 
-    // Detectar se já está em modo standalone
+    // Detect if already in standalone mode
     const standalone = window.matchMedia('(display-mode: standalone)').matches ||
                       (window.navigator as any).standalone ||
                       document.referrer.includes('android-app://');
     setIsStandalone(standalone);
 
-    // Event listener para o prompt de instalação
+    // Don't show if already installed
+    if (standalone) return;
+
+    // Check if recently dismissed
+    const dismissed = localStorage.getItem('pwa-install-dismissed');
+    if (dismissed) {
+      const dismissedTime = parseInt(dismissed);
+      const oneHour = 60 * 60 * 1000;
+      if (Date.now() - dismissedTime < oneHour) {
+        return;
+      }
+    }
+
     const handleBeforeInstallPrompt = (e: BeforeInstallPromptEvent) => {
       e.preventDefault();
       setInstallPrompt(e);
-      // Mostrar card de instalação após 5 segundos
+      
+      // Show install card after 3 seconds
       setTimeout(() => {
-        if (!standalone) {
-          setShowInstallCard(true);
-        }
-      }, 5000);
+        setShowInstallCard(true);
+      }, 3000);
+    };
+
+    const handleAppInstalled = () => {
+      console.log('PWA installed successfully');
+      setShowInstallCard(false);
+      setInstallPrompt(null);
+      localStorage.removeItem('pwa-install-dismissed');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
 
-    // Detectar quando o app foi instalado
-    window.addEventListener('appinstalled', () => {
-      console.log('PWA foi instalado com sucesso');
-      setShowInstallCard(false);
-      setInstallPrompt(null);
-    });
+    // For iOS, show install card after delay
+    if (iOS && !standalone) {
+      setTimeout(() => {
+        setShowInstallCard(true);
+      }, 3000);
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
@@ -68,40 +89,25 @@ export const PWAInstaller: React.FC = () => {
       await installPrompt.prompt();
       const { outcome } = await installPrompt.userChoice;
       
-      if (outcome === 'accepted') {
-        console.log('Usuário aceitou instalar o PWA');
-      } else {
-        console.log('Usuário rejeitou instalar o PWA');
-      }
+      console.log('Install outcome:', outcome);
       
       setInstallPrompt(null);
       setShowInstallCard(false);
     } catch (error) {
-      console.error('Erro ao tentar instalar PWA:', error);
+      console.error('Install error:', error);
     }
   };
 
   const handleDismiss = () => {
     setShowInstallCard(false);
-    // Não mostrar novamente por 1 hora
     localStorage.setItem('pwa-install-dismissed', Date.now().toString());
   };
 
-  // Não mostrar se já está instalado ou em standalone
+  // Don't show if already installed
   if (isStandalone) return null;
 
-  // Verificar se foi dismissado recentemente
-  const dismissed = localStorage.getItem('pwa-install-dismissed');
-  if (dismissed) {
-    const dismissedTime = parseInt(dismissed);
-    const oneHour = 60 * 60 * 1000;
-    if (Date.now() - dismissedTime < oneHour) {
-      return null;
-    }
-  }
-
-  if (!showInstallCard && !isIOS) return null;
-  if (isIOS && !showInstallCard) return null;
+  // Don't show if not ready
+  if (!showInstallCard) return null;
 
   return (
     <Card className="fixed bottom-4 left-4 right-4 md:left-auto md:w-96 z-50 border-[#8B5CF6] bg-gradient-to-r from-[#8B5CF6] to-[#00D4FF] p-1">

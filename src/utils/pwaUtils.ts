@@ -1,3 +1,4 @@
+
 // PWA Utility Functions
 
 export interface PWAInstallPrompt extends Event {
@@ -9,7 +10,7 @@ export interface PWAInstallPrompt extends Event {
   prompt(): Promise<void>;
 }
 
-// Detectar se o app está rodando como PWA
+// Detect if app is running as PWA
 export const isPWA = (): boolean => {
   return (
     window.matchMedia('(display-mode: standalone)').matches ||
@@ -18,92 +19,22 @@ export const isPWA = (): boolean => {
   );
 };
 
-// Detectar iOS
+// Detect iOS
 export const isIOS = (): boolean => {
   return /iPad|iPhone|iPod/.test(navigator.userAgent);
 };
 
-// Detectar Android
+// Detect Android
 export const isAndroid = (): boolean => {
   return /Android/.test(navigator.userAgent);
 };
 
-// Verificar se PWA pode ser instalado
+// Check if PWA can be installed
 export const canInstallPWA = (): boolean => {
   return 'serviceWorker' in navigator && 'PushManager' in window;
 };
 
-// Registrar Service Worker
-export const registerServiceWorker = async (): Promise<ServiceWorkerRegistration | null> => {
-  if (!('serviceWorker' in navigator)) {
-    console.log('Service Worker não suportado');
-    return null;
-  }
-
-  try {
-    const registration = await navigator.serviceWorker.register('/sw.js');
-    console.log('Service Worker registrado com sucesso:', registration);
-    
-    // Verificar atualizações
-    registration.addEventListener('updatefound', () => {
-      const newWorker = registration.installing;
-      if (newWorker) {
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // Nova versão disponível
-            console.log('Nova versão do Service Worker disponível');
-            notifyUpdate();
-          }
-        });
-      }
-    });
-
-    return registration;
-  } catch (error) {
-    console.error('Erro ao registrar Service Worker:', error);
-    return null;
-  }
-};
-
-// Notificar usuário sobre atualização
-const notifyUpdate = () => {
-  if (window.confirm('Nova versão disponível! Deseja atualizar?')) {
-    window.location.reload();
-  }
-};
-
-// Gerenciar cache manualmente
-export const updateCache = async (cacheName: string, urls: string[]) => {
-  if (!('caches' in window)) return;
-
-  try {
-    const cache = await caches.open(cacheName);
-    await cache.addAll(urls);
-    console.log('Cache atualizado com sucesso');
-  } catch (error) {
-    console.error('Erro ao atualizar cache:', error);
-  }
-};
-
-// Limpar cache antigo
-export const clearOldCaches = async (currentCacheName: string) => {
-  if (!('caches' in window)) return;
-
-  try {
-    const cacheNames = await caches.keys();
-    const oldCaches = cacheNames.filter(name => name !== currentCacheName);
-    
-    await Promise.all(
-      oldCaches.map(name => caches.delete(name))
-    );
-    
-    console.log('Caches antigos removidos:', oldCaches);
-  } catch (error) {
-    console.error('Erro ao limpar caches:', error);
-  }
-};
-
-// Verificar status de conexão
+// Get connection status
 export const getConnectionStatus = () => {
   return {
     online: navigator.onLine,
@@ -112,7 +43,7 @@ export const getConnectionStatus = () => {
   };
 };
 
-// Adicionar listener para mudanças de conectividade
+// Add connection listeners
 export const addConnectionListeners = (
   onOnline: () => void,
   onOffline: () => void
@@ -126,10 +57,10 @@ export const addConnectionListeners = (
   };
 };
 
-// Configurar notificações push (se necessário)
+// Request notification permission
 export const requestNotificationPermission = async (): Promise<boolean> => {
   if (!('Notification' in window)) {
-    console.log('Notificações não suportadas');
+    console.log('Notifications not supported');
     return false;
   }
 
@@ -145,7 +76,7 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
   return permission === 'granted';
 };
 
-// Mostrar notificação local
+// Show local notification
 export const showNotification = (title: string, options: NotificationOptions = {}) => {
   if (Notification.permission !== 'granted') return;
 
@@ -155,17 +86,17 @@ export const showNotification = (title: string, options: NotificationOptions = {
     ...options
   });
 
-  // Auto-close após 5 segundos
+  // Auto-close after 5 seconds
   setTimeout(() => notification.close(), 5000);
 
   return notification;
 };
 
-// Analytics para PWA
+// Track PWA events
 export const trackPWAEvent = (event: string, data?: any) => {
   console.log('PWA Event:', event, data);
   
-  // Aqui você pode integrar com Google Analytics, Mixpanel, etc.
+  // Integration with analytics can be added here
   if ((window as any).gtag) {
     (window as any).gtag('event', event, {
       event_category: 'PWA',
@@ -174,31 +105,10 @@ export const trackPWAEvent = (event: string, data?: any) => {
   }
 };
 
-// Detectar modo de instalação
+// Get installation mode
 export const getInstallationMode = () => {
   if (isPWA()) return 'standalone';
   if (isIOS()) return 'ios-browser';
   if (isAndroid()) return 'android-browser';
   return 'desktop-browser';
-};
-
-// Shortcut para URLs com parâmetros
-export const handleShortcutUrl = () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const action = urlParams.get('action');
-  
-  if (action) {
-    trackPWAEvent('shortcut_used', { action });
-    
-    switch (action) {
-      case 'new-revenue':
-        // Trigger para abrir modal de nova receita
-        document.dispatchEvent(new CustomEvent('pwa-shortcut-revenue'));
-        break;
-      case 'new-expense':
-        // Trigger para abrir modal de nova despesa
-        document.dispatchEvent(new CustomEvent('pwa-shortcut-expense'));
-        break;
-    }
-  }
 };

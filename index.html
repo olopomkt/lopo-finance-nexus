@@ -1,23 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+
+<!doctype html>
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <!-- Favicon and Icons -->
-    <link rel="icon" href="/favicon.png" type="image/png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/pwa-icons/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/pwa-icons/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/pwa-icons/icon-192x192.png">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    
-    <!-- Meta Tags -->
     <title>LopoFinance - Gestão Financeira</title>
     <meta name="description" content="Sistema completo de gestão financeira empresarial e pessoal com dashboard avançado e relatórios detalhados" />
-    <meta name="author" content="LopoFinance Team" />
-    <meta name="keywords" content="gestão financeira, dashboard, receitas, despesas, relatórios, finanças empresariais" />
     
     <!-- PWA Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -27,207 +16,19 @@
     <meta name="application-name" content="LopoFinance">
     <meta name="theme-color" content="#8B5CF6">
     <meta name="msapplication-TileColor" content="#8B5CF6">
-    <meta name="msapplication-config" content="/browserconfig.xml">
     
-    <!-- Open Graph -->
-    <meta property="og:title" content="LopoFinance - Gestão Financeira" />
-    <meta property="og:description" content="Sistema completo de gestão financeira empresarial e pessoal" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="/pwa-icons/icon-512x512.png" />
-    <meta property="og:url" content="https://d215b889-d970-41df-8e5e-91c43ec846d7.lovableproject.com" />
-    <meta property="og:site_name" content="LopoFinance" />
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" sizes="152x152" href="/pwa-icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="/pwa-icons/icon-192x192.png">
     
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="LopoFinance - Gestão Financeira" />
-    <meta name="twitter:description" content="Sistema completo de gestão financeira" />
-    <meta name="twitter:image" content="/pwa-icons/icon-512x512.png" />
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json">
     
-    <!-- Preconnect for performance -->
+    <!-- Preload critical resources -->
     <link rel="preconnect" href="https://kdumengvbndveepkponj.supabase.co">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   </head>
-
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- PWA Service Worker Registration -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then((registration) => {
-              console.log('SW registered: ', registration);
-              
-              // Verificar atualizações do service worker
-              registration.addEventListener('updatefound', () => {
-                const newWorker = registration.installing;
-                if (newWorker) {
-                  newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                      // Novo service worker instalado, notificar usuário
-                      if (confirm('Nova versão disponível! Deseja atualizar?')) {
-                        newWorker.postMessage({ type: 'SKIP_WAITING' });
-                        window.location.reload();
-                      }
-                    }
-                  });
-                }
-              });
-            })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
-            });
-        });
-      }
-
-      // PWA Install Prompt
-      let deferredPrompt;
-      
-      window.addEventListener('beforeinstallprompt', (e) => {
-        console.log('PWA install prompt triggered');
-        e.preventDefault();
-        deferredPrompt = e;
-        
-        // Mostrar botão de instalação customizado após 3 segundos
-        setTimeout(() => {
-          showInstallPromotion();
-        }, 3000);
-      });
-
-      function showInstallPromotion() {
-        if (!deferredPrompt) return;
-        
-        const installBanner = document.createElement('div');
-        installBanner.id = 'install-banner';
-        installBanner.innerHTML = `
-          <div style="
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #8B5CF6, #00D4FF);
-            color: white;
-            padding: 16px 20px;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.3);
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-family: 'Open Sans', sans-serif;
-            animation: slideUp 0.3s ease-out;
-          ">
-            <div style="flex: 1;">
-              <div style="font-weight: 600; margin-bottom: 4px;">📱 Instalar LopoFinance</div>
-              <div style="font-size: 14px; opacity: 0.9;">Tenha acesso rápido na sua tela inicial</div>
-            </div>
-            <div style="display: flex; gap: 12px; margin-left: 16px;">
-              <button onclick="installPWA()" style="
-                background: rgba(255,255,255,0.2);
-                border: 1px solid rgba(255,255,255,0.3);
-                color: white;
-                padding: 8px 16px;
-                border-radius: 6px;
-                cursor: pointer;
-                font-weight: 600;
-                transition: all 0.2s;
-              ">Instalar</button>
-              <button onclick="dismissInstall()" style="
-                background: transparent;
-                border: 1px solid rgba(255,255,255,0.3);
-                color: white;
-                padding: 8px 12px;
-                border-radius: 6px;
-                cursor: pointer;
-                transition: all 0.2s;
-              ">✕</button>
-            </div>
-          </div>
-          <style>
-            @keyframes slideUp {
-              from { transform: translateY(100%); opacity: 0; }
-              to { transform: translateY(0); opacity: 1; }
-            }
-          </style>
-        `;
-        
-        document.body.appendChild(installBanner);
-      }
-
-      window.installPWA = async function() {
-        if (!deferredPrompt) return;
-        
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        
-        console.log(`PWA install prompt: ${outcome}`);
-        
-        if (outcome === 'accepted') {
-          console.log('User accepted the install prompt');
-        }
-        
-        deferredPrompt = null;
-        dismissInstall();
-      };
-
-      window.dismissInstall = function() {
-        const banner = document.getElementById('install-banner');
-        if (banner) {
-          banner.style.animation = 'slideDown 0.3s ease-in forwards';
-          setTimeout(() => banner.remove(), 300);
-        }
-      };
-
-      // Detectar quando o app foi instalado
-      window.addEventListener('appinstalled', (evt) => {
-        console.log('PWA was installed successfully');
-        // Analytics ou notificação de sucesso
-      });
-
-      // Connection status monitoring
-      function updateConnectionStatus() {
-        if (navigator.onLine) {
-          document.body.classList.remove('offline');
-          console.log('App is online');
-        } else {
-          document.body.classList.add('offline');
-          console.log('App is offline');
-        }
-      }
-
-      window.addEventListener('online', updateConnectionStatus);
-      window.addEventListener('offline', updateConnectionStatus);
-      updateConnectionStatus();
-    </script>
-    
-    <!-- Additional inline styles for PWA -->
-    <style>
-      @keyframes slideDown {
-        from { transform: translateY(0); opacity: 1; }
-        to { transform: translateY(100%); opacity: 0; }
-      }
-      
-      .offline {
-        filter: grayscale(0.3);
-      }
-      
-      .offline::before {
-        content: "⚠️ Modo Offline";
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: #ff6b6b;
-        color: white;
-        text-align: center;
-        padding: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        z-index: 10001;
-      }
-    </style>
   </body>
 </html>

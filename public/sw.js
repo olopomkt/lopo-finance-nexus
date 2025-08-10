@@ -1,8 +1,9 @@
+
 // LopoFinance PWA Service Worker
-const CACHE_NAME = 'lopofinance-v1.0.0';
+const CACHE_NAME = 'lopofinance-v1.1.0';
 const OFFLINE_PAGE = '/offline.html';
 
-// Recursos críticos para cache
+// Critical resources for cache
 const STATIC_CACHE_URLS = [
   '/',
   '/offline.html',
@@ -11,13 +12,14 @@ const STATIC_CACHE_URLS = [
   '/pwa-icons/icon-512x512.png'
 ];
 
-// URLs dinâmicas do Supabase que precisam ser sempre atualizadas
-const DYNAMIC_URLS = [
-  'https://kdumengvbndveepkponj.supabase.co',
-  '/api'
+// Dynamic URLs that need to be always updated
+const DYNAMIC_PATTERNS = [
+  'kdumengvbndveepkponj.supabase.co',
+  '/api/',
+  '/auth/'
 ];
 
-// Instalar Service Worker
+// Install Service Worker
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing service worker...');
   
@@ -37,13 +39,14 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Ativar Service Worker
+// Activate Service Worker
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating service worker...');
   
   event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
+    Promise.all([
+      // Clean old caches
+      caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
             if (cacheName !== CACHE_NAME) {
@@ -52,68 +55,103 @@ self.addEventListener('activate', (event) => {
             }
           })
         );
-      })
-      .then(() => {
-        console.log('[SW] Activation complete');
-        return self.clients.claim();
-      })
+      }),
+      // Take control of all clients
+      self.clients.claim()
+    ]).then(() => {
+      console.log('[SW] Activation complete');
+    })
   );
 });
 
-// Estratégia de cache para diferentes tipos de recursos
+// Fetch Strategy
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Ignorar requisições não-HTTP
+  // Skip non-HTTP requests
   if (!request.url.startsWith('http')) {
     return;
   }
 
-  // Estratégia para Supabase - sempre network first
-  if (url.hostname.includes('supabase.co')) {
+  // Skip Chrome extension requests
+  if (request.url.startsWith('chrome-extension://')) {
+    return;
+  }
+
+  // Network first for Supabase and dynamic content
+  if (isDynamicRequest(request)) {
     event.respondWith(networkFirstStrategy(request));
     return;
   }
 
-  // Estratégia para recursos estáticos - cache first
+  // Cache first for static resources
   if (isStaticResource(request)) {
     event.respondWith(cacheFirstStrategy(request));
     return;
   }
 
-  // Estratégia para navegação - network first com fallback
+  // Network first with offline fallback for navigation
   if (request.mode === 'navigate') {
     event.respondWith(networkFirstWithOfflineFallback(request));
     return;
   }
 
-  // Estratégia padrão - network first
+  // Default: network first
   event.respondWith(networkFirstStrategy(request));
 });
 
-// Network First Strategy (para Supabase e dados dinâmicos)
+// Check if request is dynamic (Supabase, APIs)
+function isDynamicRequest(request) {
+  const url = request.url.toLowerCase();
+  return DYNAMIC_PATTERNS.some(pattern => url.includes(pattern));
+}
+
+// Check if request is for static resources
+function isStaticResource(request) {
+  const url = new URL(request.url);
+  const pathname = url.pathname.toLowerCase();
+  
+  return (
+    pathname.includes('.js') ||
+    pathname.includes('.css') ||
+    pathname.includes('.png') ||
+    pathname.includes('.jpg') ||
+    pathname.includes('.jpeg') ||
+    pathname.includes('.svg') ||
+    pathname.includes('.ico') ||
+    pathname.includes('.woff') ||
+    pathname.includes('.woff2') ||
+    pathname.includes('/pwa-icons/') ||
+    pathname.includes('/assets/') ||
+    pathname === '/manifest.json'
+  );
+}
+
+// Network First Strategy
 async function networkFirstStrategy(request) {
   try {
     const networkResponse = await fetch(request);
     
-    // Cache apenas respostas bem-sucedidas
-    if (networkResponse.status === 200) {
+    // Cache successful responses
+    if (networkResponse.status === 200 && request.method === 'GET') {
       const cache = await caches.open(CACHE_NAME);
-      cache.put(request, networkResponse.clone());
+      cache.put(request, networkResponse.clone()).catch(() => {
+        // Ignore cache errors
+      });
     }
     
     return networkResponse;
   } catch (error) {
     console.log('[SW] Network failed, trying cache:', request.url);
-    const cachedResponse = await caches.match(request);
     
+    const cachedResponse = await caches.match(request);
     if (cachedResponse) {
       return cachedResponse;
     }
     
-    // Se não há cache e é uma API request, retornar erro estruturado
-    if (request.url.includes('/api/') || request.url.includes('supabase.co')) {
+    // Return structured error for API requests
+    if (isDynamicRequest(request)) {
       return new Response(JSON.stringify({
         error: 'Sem conexão',
         message: 'Dados não disponíveis offline',
@@ -128,12 +166,12 @@ async function networkFirstStrategy(request) {
   }
 }
 
-// Cache First Strategy (para recursos estáticos)
+// Cache First Strategy
 async function cacheFirstStrategy(request) {
   const cachedResponse = await caches.match(request);
   
   if (cachedResponse) {
-    // Atualizar cache em background
+    // Update cache in background
     fetch(request).then(response => {
       if (response.status === 200) {
         caches.open(CACHE_NAME).then(cache => {
@@ -141,18 +179,21 @@ async function cacheFirstStrategy(request) {
         });
       }
     }).catch(() => {
-      // Ignorar erros de rede em background update
+      // Ignore background update errors
     });
     
     return cachedResponse;
   }
   
+  // Fallback to network
   try {
     const networkResponse = await fetch(request);
     
     if (networkResponse.status === 200) {
       const cache = await caches.open(CACHE_NAME);
-      cache.put(request, networkResponse.clone());
+      cache.put(request, networkResponse.clone()).catch(() => {
+        // Ignore cache errors
+      });
     }
     
     return networkResponse;
@@ -162,40 +203,25 @@ async function cacheFirstStrategy(request) {
   }
 }
 
-// Network First with Offline Fallback (para navegação)
+// Network First with Offline Fallback
 async function networkFirstWithOfflineFallback(request) {
   try {
     const networkResponse = await fetch(request);
     return networkResponse;
   } catch (error) {
     console.log('[SW] Navigation failed, serving offline page');
+    
     const cache = await caches.open(CACHE_NAME);
     const offlinePage = await cache.match(OFFLINE_PAGE);
-    return offlinePage || new Response('Offline', { status: 503 });
+    
+    return offlinePage || new Response('Offline', { 
+      status: 503,
+      headers: { 'Content-Type': 'text/html' }
+    });
   }
 }
 
-// Verificar se é recurso estático
-function isStaticResource(request) {
-  const url = new URL(request.url);
-  const pathname = url.pathname;
-  
-  return (
-    pathname.includes('.js') ||
-    pathname.includes('.css') ||
-    pathname.includes('.png') ||
-    pathname.includes('.jpg') ||
-    pathname.includes('.jpeg') ||
-    pathname.includes('.svg') ||
-    pathname.includes('.ico') ||
-    pathname.includes('.woff') ||
-    pathname.includes('.woff2') ||
-    pathname.includes('/pwa-icons/') ||
-    pathname.includes('/assets/')
-  );
-}
-
-// Sincronização em background
+// Background Sync
 self.addEventListener('sync', (event) => {
   console.log('[SW] Background sync triggered:', event.tag);
   
@@ -204,14 +230,12 @@ self.addEventListener('sync', (event) => {
   }
 });
 
-// Função de sincronização de dados financeiros
+// Sync financial data
 async function syncFinancialData() {
   try {
     console.log('[SW] Syncing financial data...');
-    // Aqui você pode implementar lógica específica de sincronização
-    // Por exemplo, enviar dados que foram salvos offline
     
-    // Exemplo de notificação de sincronização bem-sucedida
+    // Show success notification
     if (self.registration.showNotification) {
       self.registration.showNotification('LopoFinance', {
         body: 'Dados sincronizados com sucesso!',
@@ -251,7 +275,7 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// Ação de notificação
+// Notification clicks
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification clicked:', event.action);
   
@@ -264,7 +288,7 @@ self.addEventListener('notificationclick', (event) => {
   }
 });
 
-// Mensagens do cliente
+// Messages from client
 self.addEventListener('message', (event) => {
   console.log('[SW] Message received:', event.data);
   
