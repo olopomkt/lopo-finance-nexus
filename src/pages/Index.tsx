@@ -1,5 +1,7 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,16 +13,39 @@ import { RecordsView } from '@/components/RecordsView';
 import { CompanyRevenueForm } from '@/components/forms/CompanyRevenueForm';
 import { CompanyExpenseForm } from '@/components/forms/CompanyExpenseForm';
 import { PersonalExpenseForm } from '@/components/forms/PersonalExpenseForm';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
 import { StarBorder } from '@/components/ui/star-border';
-import { FilterProvider } from '@/contexts/FilterContext';
 import { PWAInstaller } from '@/components/PWAInstaller';
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [activeForm, setActiveForm] = useState<'revenue' | 'company-expense' | 'personal-expense' | null>(null);
   const [editingRevenue, setEditingRevenue] = useState<CompanyRevenue | undefined>();
   const [editingCompanyExpense, setEditingCompanyExpense] = useState<CompanyExpense | undefined>();
   const [editingPersonalExpense, setEditingPersonalExpense] = useState<PersonalExpense | undefined>();
+
+  // Redirect to auth if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-neutral-950 to-neutral-800 flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  // Don't render anything if not authenticated (will redirect)
+  if (!user) {
+    return null;
+  }
 
   const handleCloseForm = () => {
     setActiveForm(null);
@@ -45,11 +70,10 @@ const Index = () => {
   };
 
   return (
-    <FilterProvider>
-      <div className="min-h-screen bg-gradient-to-b from-neutral-950 to-neutral-800">
-        <Header />
-        
-        <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-b from-neutral-950 to-neutral-800">
+      <Header />
+      
+      <div className="container mx-auto px-4">
           <Tabs defaultValue="dashboard" className="w-full">
             <TabsList className="grid w-full grid-cols-2 border-[2.5px] border-white">
               <TabsTrigger value="dashboard" className="flex items-center gap-2">
@@ -155,10 +179,9 @@ const Index = () => {
           </AnimatePresence>
         </div>
         
-        {/* PWA Installer */}
-        <PWAInstaller />
-      </div>
-    </FilterProvider>
+      {/* PWA Installer */}
+      <PWAInstaller />
+    </div>
   );
 };
 

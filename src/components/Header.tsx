@@ -2,10 +2,43 @@
 import { motion } from 'framer-motion';
 import { StarsBackground } from '@/components/ui/stars';
 import { ShinyText } from "@/components/ui/shiny-text";
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
 
 export const Header = () => {
+  const { user, signOut } = useAuth();
+  
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
     <div className="relative w-full h-[650px] bg-black overflow-hidden">
+      {/* Logout button */}
+      {user && (
+        <div className="absolute top-4 right-4 z-30">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleSignOut}
+            className="flex items-center gap-2 bg-black/20 border-white/20 text-white hover:bg-white/10"
+          >
+            <LogOut className="h-4 w-4" />
+            <span className="hidden sm:inline">Sair</span>
+          </Button>
+        </div>
+      )}
+      
+      {/* User info */}
+      {user && (
+        <div className="absolute top-4 left-4 z-30">
+          <div className="text-white/70 text-sm">
+            {user.email}
+          </div>
+        </div>
+      )}
+      
       {/* Fundo de estrelas */}
       <StarsBackground className="absolute inset-0 z-0" />
 
