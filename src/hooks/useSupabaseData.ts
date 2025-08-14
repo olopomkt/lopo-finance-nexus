@@ -28,28 +28,18 @@ export const useSupabaseData = () => {
     try {
       console.log('Fetching all data from Supabase...');
       
-      // Check if user is authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('Usuário não autenticado');
-      }
-
       const [revenuesResult, companyExpensesResult, personalExpensesResult] = await Promise.all([
         supabase
           .from('company_revenues')
           .select('*')
-          .eq('user_id', user.id)
           .order('payment_date', { ascending: false }),
         supabase
           .from('company_expenses')
           .select('*')
-          .eq('user_id', user.id)
           .order('payment_date', { ascending: false }),
         supabase
           .from('personal_expenses')
           .select('*')
-          .eq('user_id', user.id)
           .order('payment_date', { ascending: false })
       ]);
 
@@ -164,13 +154,6 @@ export const useSupabaseData = () => {
     try {
       console.log('Saving revenue data:', data);
       
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('Usuário não autenticado');
-      }
-      
       const insertData = {
         client_name: data.clientName,
         service: data.service,
@@ -181,8 +164,7 @@ export const useSupabaseData = () => {
         payment_date: data.paymentDate,
         account_type: data.accountType,
         received: data.received || false,
-        received_date: data.receivedDate || null,
-        user_id: user.id
+        received_date: data.receivedDate || null
       };
 
       const { data: result, error } = await supabase
@@ -225,13 +207,6 @@ export const useSupabaseData = () => {
     try {
       console.log('Saving company expense data:', data);
       
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('Usuário não autenticado');
-      }
-      
       const insertData = {
         name: data.name,
         price: Number(data.price),
@@ -239,8 +214,7 @@ export const useSupabaseData = () => {
         type: data.type,
         payment_date: data.paymentDate,
         paid: data.paid || false,
-        paid_date: data.paidDate || null,
-        user_id: user.id
+        paid_date: data.paidDate || null
       };
 
       const { data: result, error } = await supabase
@@ -282,21 +256,13 @@ export const useSupabaseData = () => {
     try {
       console.log('Saving personal expense data:', data);
       
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('Usuário não autenticado');
-      }
-      
       const insertData = {
         name: data.name,
         price: Number(data.price),
         payment_date: data.paymentDate,
         observation: data.observation || null,
         paid: data.paid || false,
-        paid_date: data.paidDate || null,
-        user_id: user.id
+        paid_date: data.paidDate || null
       };
 
       const { data: result, error } = await supabase
