@@ -1,82 +1,78 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-const CORRECT_PASSWORD = '012569';
-const AUTH_KEY = 'finance_app_auth';
-const LAST_ACCESS_KEY = 'finance_app_last_access';
-const KEEP_LOGGED_KEY = 'finance_app_keep_logged';
-const SESSION_DURATION = 120 * 60 * 60 * 1000; // 120 horas em millisegundos
+const SESSION_KEY = 'lopofinance_session';
 
-export const usePasswordAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+export function usePasswordAuth() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAuthentication();
+    try {
+      const session = localStorage.getItem(SESSION_KEY);
+      if (session) {
+        const { timestamp } = JSON.parse(session);
+        const isSessionValid = (new Date().getTime() - timestamp) < (24 * 60 * 60 * 1000); // 24 horas
+        setIsAuthenticated(isSessionValid);
+      } else {
+        setIsAuthenticated(false);
+      }
+    } catch (e) {
+      console.error('Error checking session:', e);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const checkAuthentication = () => {
-    const authStatus = localStorage.getItem(AUTH_KEY);
-    const lastAccess = localStorage.getItem(LAST_ACCESS_KEY);
-    const keepLogged = localStorage.getItem(KEEP_LOGGED_KEY) === 'true';
+  const login = useCallback(async (password: string) => {
+    setIsLoading(true);
+    setError(null);
     
-    if (authStatus === 'true' && lastAccess) {
-      const lastAccessTime = parseInt(lastAccess);
-      const currentTime = Date.now();
-      const timeDifference = currentTime - lastAccessTime;
+    try {
+      console.log('Attempting to verify password...');
       
-      // Se passou do tempo limite e não está marcado para manter logado
-      if (timeDifference > SESSION_DURATION && !keepLogged) {
-        logout();
-      } else {
-        // Atualiza o último acesso
-        updateLastAccess();
-        setIsAuthenticated(true);
+      const { data, error: funcError } = await supabase.functions.invoke('verify-password', {
+        body: { password },
+      });
+
+      console.log('Function response:', { data, funcError });
+
+      if (funcError) {
+        console.error('Function error:', funcError);
+        throw new Error(funcError.message || 'Erro na comunicação com o servidor');
       }
-    }
-    
-    setIsLoading(false);
-  };
 
-  const login = (password: string, keepLogged: boolean = false) => {
-    if (password === CORRECT_PASSWORD) {
-      localStorage.setItem(AUTH_KEY, 'true');
-      localStorage.setItem(KEEP_LOGGED_KEY, keepLogged.toString());
-      updateLastAccess();
-      setIsAuthenticated(true);
-      return true;
-    }
-    return false;
-  };
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
-  const logout = () => {
-    localStorage.removeItem(AUTH_KEY);
-    localStorage.removeItem(LAST_ACCESS_KEY);
-    localStorage.removeItem(KEEP_LOGGED_KEY);
+      if (data?.authenticated) {
+        const session = { timestamp: new Date().getTime() };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        setIsAuthenticated(true);
+        console.log('Login successful');
+        return true;
+      } else {
+        throw new Error('Senha incorreta');
+      }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Falha na autenticação');
+      setIsAuthenticated(false);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem(SESSION_KEY);
     setIsAuthenticated(false);
-  };
+    console.log('User logged out');
+  }, []);
 
-  const updateLastAccess = () => {
-    localStorage.setItem(LAST_ACCESS_KEY, Date.now().toString());
-  };
-
-  // Atualiza o último acesso sempre que a página é visualizada
-  useEffect(() => {
-    if (isAuthenticated) {
-      updateLastAccess();
-      
-      // Listener para atualizar último acesso quando a página ganha foco
-      const handleFocus = () => updateLastAccess();
-      window.addEventListener('focus', handleFocus);
-      
-      return () => window.removeEventListener('focus', handleFocus);
-    }
-  }, [isAuthenticated]);
-
-  return {
-    isAuthenticated,
-    isLoading,
-    login,
-    logout
-  };
-};
+  return { isAuthenticated, isLoading, error, login, logout };
+}
