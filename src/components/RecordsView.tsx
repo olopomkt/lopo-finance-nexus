@@ -5,7 +5,6 @@ import { CompanyExpenseList } from '@/components/lists/CompanyExpenseList';
 import { PersonalExpenseList } from '@/components/lists/PersonalExpenseList';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
 import { useFinanceData } from '@/hooks/useFinanceData';
-import { useGlobalFilters } from '@/contexts/FilterContext';
 import { useFilteredData } from '@/hooks/useFilteredData';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { AlertCircle, Wifi, WifiOff, TrendingUp, Building2, User } from 'lucide-react';
@@ -24,14 +23,12 @@ export const RecordsView = ({
   onEditPersonalExpense 
 }: Props) => {
   const { companyRevenues, companyExpenses, personalExpenses, isLoading, error, isConnected } = useFinanceData();
-  const { filters } = useGlobalFilters();
   
-  const { filteredRevenues, filteredCompanyExpenses, filteredPersonalExpenses } = useFilteredData(
+  const { filteredRevenues, filteredCompanyExpenses, filteredPersonalExpenses } = useFilteredData({
     companyRevenues,
     companyExpenses,
-    personalExpenses,
-    filters
-  );
+    personalExpenses
+  });
 
   // Show loading state
   if (isLoading && companyRevenues.length === 0 && companyExpenses.length === 0 && personalExpenses.length === 0) {

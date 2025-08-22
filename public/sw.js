@@ -1,6 +1,6 @@
 
 // LopoFinance PWA Service Worker
-const CACHE_NAME = 'lopofinance-v1.1.0';
+const CACHE_NAME = 'lopofinance-v1.2.0';
 const OFFLINE_PAGE = '/offline.html';
 
 // Critical resources for cache
@@ -221,31 +221,51 @@ async function networkFirstWithOfflineFallback(request) {
   }
 }
 
-// Background Sync
+// Background Sync - NEW FUNCTIONALITY
 self.addEventListener('sync', (event) => {
   console.log('[SW] Background sync triggered:', event.tag);
   
-  if (event.tag === 'financial-data-sync') {
-    event.waitUntil(syncFinancialData());
+  if (event.tag === 'sync-new-data') {
+    event.waitUntil(syncOfflineData());
   }
 });
 
-// Sync financial data
-async function syncFinancialData() {
+// Sync offline data - NEW FUNCTIONALITY
+async function syncOfflineData() {
   try {
-    console.log('[SW] Syncing financial data...');
+    console.log('[SW] Starting offline data sync...');
+    
+    // Send message to all clients to start sync
+    const clients = await self.clients.matchAll();
+    clients.forEach(client => {
+      client.postMessage({
+        type: 'SYNC_OFFLINE_DATA'
+      });
+    });
+    
+    console.log('[SW] Sync message sent to clients');
     
     // Show success notification
     if (self.registration.showNotification) {
       self.registration.showNotification('LopoFinance', {
-        body: 'Dados sincronizados com sucesso!',
+        body: 'Sincronizando dados offline...',
         icon: '/pwa-icons/icon-192x192.png',
         badge: '/pwa-icons/icon-72x72.png',
-        tag: 'sync-success'
+        tag: 'sync-progress'
       });
     }
   } catch (error) {
     console.error('[SW] Sync failed:', error);
+    
+    // Show error notification
+    if (self.registration.showNotification) {
+      self.registration.showNotification('LopoFinance', {
+        body: 'Erro na sincronização. Tentaremos novamente.',
+        icon: '/pwa-icons/icon-192x192.png',
+        badge: '/pwa-icons/icon-72x72.png',
+        tag: 'sync-error'
+      });
+    }
   }
 }
 
@@ -288,7 +308,7 @@ self.addEventListener('notificationclick', (event) => {
   }
 });
 
-// Messages from client
+// Messages from client - UPDATED
 self.addEventListener('message', (event) => {
   console.log('[SW] Message received:', event.data);
   
@@ -298,5 +318,18 @@ self.addEventListener('message', (event) => {
   
   if (event.data && event.data.type === 'GET_VERSION') {
     event.ports[0].postMessage({ version: CACHE_NAME });
+  }
+  
+  // NEW: Handle sync completion messages
+  if (event.data && event.data.type === 'SYNC_COMPLETED') {
+    // Show success notification
+    if (self.registration.showNotification) {
+      self.registration.showNotification('LopoFinance', {
+        body: 'Dados sincronizados com sucesso!',
+        icon: '/pwa-icons/icon-192x192.png',
+        badge: '/pwa-icons/icon-72x72.png',
+        tag: 'sync-success'
+      });
+    }
   }
 });

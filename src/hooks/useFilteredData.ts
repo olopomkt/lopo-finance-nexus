@@ -1,16 +1,23 @@
 
 import { useMemo } from 'react';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
-import { GlobalFilterState } from '@/contexts/FilterContext';
+import { useGlobalFilters } from '@/contexts/FilterContext';
 
 type TransactionType = CompanyRevenue | CompanyExpense | PersonalExpense;
 
-export const useFilteredData = (
-  revenues: CompanyRevenue[],
-  companyExpenses: CompanyExpense[],
-  personalExpenses: PersonalExpense[],
-  filters: GlobalFilterState
-) => {
+interface UseFilteredDataProps {
+  companyRevenues: CompanyRevenue[];
+  companyExpenses: CompanyExpense[];
+  personalExpenses: PersonalExpense[];
+}
+
+export const useFilteredData = ({
+  companyRevenues,
+  companyExpenses,
+  personalExpenses
+}: UseFilteredDataProps) => {
+  const { filters } = useGlobalFilters();
+
   const filterTransactions = useMemo(() => {
     return <T extends TransactionType>(transactions: T[]): T[] => {
       if (!transactions.length) return [];
@@ -55,23 +62,48 @@ export const useFilteredData = (
       }
 
       // Filtro de método de pagamento
-      if (filters.paymentMethod !== 'all' && 'paymentMethod' in filtered[0]) {
+      if (filters.paymentMethod !== 'all' && filtered.length > 0 && 'paymentMethod' in filtered[0]) {
         filtered = filtered.filter((transaction) => {
           return (transaction as CompanyRevenue | CompanyExpense).paymentMethod === filters.paymentMethod;
         });
       }
 
       // Filtro de tipo de contrato (apenas receitas)
-      if (filters.contractType !== 'all' && 'contractType' in filtered[0]) {
+      if (filters.contractType !== 'all' && filtered.length > 0 && 'contractType' in filtered[0]) {
         filtered = filtered.filter((transaction) => {
           return (transaction as CompanyRevenue).contractType === filters.contractType;
         });
       }
 
       // Filtro de tipo de despesa (apenas despesas empresariais)
-      if (filters.expenseType !== 'all' && 'type' in filtered[0]) {
+      if (filters.expenseType !== 'all' && filtered.length > 0 && 'type' in filtered[0]) {
         filtered = filtered.filter((transaction) => {
           return (transaction as CompanyExpense).type === filters.expenseType;
+        });
+      }
+
+      // Filtro de tipo de conta (apenas receitas)
+      if (filters.accountType !== 'all' && filtered.length > 0 && 'accountType' in filtered[0]) {
+        filtered = filtered.filter((transaction) => {
+          return (transaction as CompanyRevenue).accountType === filters.accountType;
+        });
+      }
+
+      // Filtro de status
+      if (filters.status !== 'all') {
+        filtered = filtered.filter((transaction) => {
+          if ('received' in transaction) {
+            // CompanyRevenue
+            const revenue = transaction as CompanyRevenue;
+            if (filters.status === 'received') return revenue.received;
+            if (filters.status === 'pending') return !revenue.received;
+          } else if ('paid' in transaction) {
+            // CompanyExpense ou PersonalExpense
+            const expense = transaction as CompanyExpense | PersonalExpense;
+            if (filters.status === 'paid') return expense.paid;
+            if (filters.status === 'unpaid') return !expense.paid;
+          }
+          return true;
         });
       }
 
@@ -111,9 +143,20 @@ export const useFilteredData = (
     };
   }, [filters]);
 
-  const filteredRevenues = useMemo(() => filterTransactions(revenues), [revenues, filterTransactions]);
-  const filteredCompanyExpenses = useMemo(() => filterTransactions(companyExpenses), [companyExpenses, filterTransactions]);
-  const filteredPersonalExpenses = useMemo(() => filterTransactions(personalExpenses), [personalExpenses, filterTransactions]);
+  const filteredRevenues = useMemo(() => 
+    filterTransactions(companyRevenues), 
+    [companyRevenues, filterTransactions]
+  );
+  
+  const filteredCompanyExpenses = useMemo(() => 
+    filterTransactions(companyExpenses), 
+    [companyExpenses, filterTransactions]
+  );
+  
+  const filteredPersonalExpenses = useMemo(() => 
+    filterTransactions(personalExpenses), 
+    [personalExpenses, filterTransactions]
+  );
 
   return {
     filteredRevenues,

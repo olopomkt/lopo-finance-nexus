@@ -1,9 +1,9 @@
-
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
 import { toast } from '@/hooks/use-toast';
 import { dateTransformers } from '@/lib/dateUtils';
+import { useBackgroundSync } from '@/hooks/useBackgroundSync';
 import type { Database } from '@/integrations/supabase/types';
 
 export const useSupabaseData = () => {
@@ -14,9 +14,67 @@ export const useSupabaseData = () => {
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(true);
   
+  const { addPendingOperation, syncPendingOperations } = useBackgroundSync();
+  
   // Use ref to prevent multiple subscriptions
   const channelRef = useRef<any>(null);
   const mountedRef = useRef(true);
+
+  // Listen for sync messages from service worker
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'SYNC_OFFLINE_DATA') {
+        console.log('[Main] Received sync request from SW');
+        syncPendingOperations();
+      }
+    };
+
+    navigator.serviceWorker?.addEventListener('message', handleMessage);
+    
+    return () => {
+      navigator.serviceWorker?.removeEventListener('message', handleMessage);
+    };
+  }, [syncPendingOperations]);
+
+  // Helper to handle offline operations
+  const handleOfflineOperation = async (
+    operation: () => Promise<any>,
+    fallbackData: {
+      type: 'save' | 'update' | 'delete';
+      table: 'company_revenues' | 'company_expenses' | 'personal_expenses';
+      data: any;
+      recordId?: string;
+    }
+  ) => {
+    try {
+      const result = await operation();
+      setIsConnected(true);
+      return result;
+    } catch (error: any) {
+      console.error('Operation failed, checking if offline:', error);
+      
+      // Check if it's a network error
+      if (error.message?.includes('Failed to fetch') || 
+          error.message?.includes('NetworkError') ||
+          error.code === 'NETWORK_FAILURE') {
+        
+        setIsConnected(false);
+        
+        // Add to pending operations
+        await addPendingOperation(fallbackData);
+        
+        toast({
+          title: "Operação salva offline",
+          description: "A operação será sincronizada quando a conexão for restaurada."
+        });
+        
+        return null; // Indicate offline operation
+      }
+      
+      // Re-throw other errors
+      throw error;
+    }
+  };
 
   // Fetch all data with better error handling
   const fetchAllData = useCallback(async () => {
@@ -148,7 +206,7 @@ export const useSupabaseData = () => {
     }
   }, []);
 
-  // Save operations with improved error handling and loading states
+  // Save operations with offline support
   const saveRevenue = useCallback(async (data: any) => {
     setIsLoading(true);
     try {
@@ -167,26 +225,29 @@ export const useSupabaseData = () => {
         received_date: data.receivedDate || null
       };
 
-      const { data: result, error } = await supabase
-        .from('company_revenues')
-        .insert(insertData)
-        .select()
-        .single();
+      const result = await handleOfflineOperation(
+        () => supabase.from('company_revenues').insert(insertData).select().single(),
+        {
+          type: 'save',
+          table: 'company_revenues',
+          data: insertData
+        }
+      );
 
-      if (error) {
-        console.error('Error saving revenue:', error);
-        throw new Error(`Erro ao salvar receita: ${error.message}`);
+      if (result?.data) {
+        toast({
+          title: "Sucesso",
+          description: "Receita salva com sucesso!"
+        });
+        return result.data;
+      } else if (result === null) {
+        // Offline operation - success message already shown
+        return null;
       }
 
-      if (!result) {
-        throw new Error('Erro inesperado: resultado vazio do banco');
+      if (result?.error) {
+        throw new Error(`Erro ao salvar receita: ${result.error.message}`);
       }
-      
-      // Don't manually update state - let real-time subscription handle it
-      toast({
-        title: "Sucesso",
-        description: "Receita salva com sucesso!"
-      });
       
       return result;
     } catch (error: any) {
@@ -200,7 +261,7 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [addPendingOperation]);
 
   const saveCompanyExpense = useCallback(async (data: any) => {
     setIsLoading(true);
@@ -217,25 +278,28 @@ export const useSupabaseData = () => {
         paid_date: data.paidDate || null
       };
 
-      const { data: result, error } = await supabase
-        .from('company_expenses')
-        .insert(insertData)
-        .select()
-        .single();
+      const result = await handleOfflineOperation(
+        () => supabase.from('company_expenses').insert(insertData).select().single(),
+        {
+          type: 'save',
+          table: 'company_expenses',
+          data: insertData
+        }
+      );
 
-      if (error) {
-        console.error('Error saving company expense:', error);
-        throw new Error(`Erro ao salvar despesa: ${error.message}`);
+      if (result?.data) {
+        toast({
+          title: "Sucesso",
+          description: "Despesa salva com sucesso!"
+        });
+        return result.data;
+      } else if (result === null) {
+        return null;
       }
 
-      if (!result) {
-        throw new Error('Erro inesperado: resultado vazio do banco');
+      if (result?.error) {
+        throw new Error(`Erro ao salvar despesa: ${result.error.message}`);
       }
-      
-      toast({
-        title: "Sucesso",
-        description: "Despesa salva com sucesso!"
-      });
       
       return result;
     } catch (error: any) {
@@ -249,7 +313,7 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [addPendingOperation]);
 
   const savePersonalExpense = useCallback(async (data: any) => {
     setIsLoading(true);
@@ -265,25 +329,28 @@ export const useSupabaseData = () => {
         paid_date: data.paidDate || null
       };
 
-      const { data: result, error } = await supabase
-        .from('personal_expenses')
-        .insert(insertData)
-        .select()
-        .single();
+      const result = await handleOfflineOperation(
+        () => supabase.from('personal_expenses').insert(insertData).select().single(),
+        {
+          type: 'save',
+          table: 'personal_expenses',
+          data: insertData
+        }
+      );
 
-      if (error) {
-        console.error('Error saving personal expense:', error);
-        throw new Error(`Erro ao salvar conta: ${error.message}`);
+      if (result?.data) {
+        toast({
+          title: "Sucesso",
+          description: "Conta salva com sucesso!"
+        });
+        return result.data;
+      } else if (result === null) {
+        return null;
       }
 
-      if (!result) {
-        throw new Error('Erro inesperado: resultado vazio do banco');
+      if (result?.error) {
+        throw new Error(`Erro ao salvar conta: ${result.error.message}`);
       }
-      
-      toast({
-        title: "Sucesso",
-        description: "Conta salva com sucesso!"
-      });
       
       return result;
     } catch (error: any) {
@@ -297,7 +364,7 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [addPendingOperation]);
 
   // Update operations with better error handling
   const updateRevenue = useCallback(async (id: string, data: any) => {
@@ -316,20 +383,22 @@ export const useSupabaseData = () => {
       if (data.received !== undefined) updateData.received = data.received;
       if (data.receivedDate !== undefined) updateData.received_date = data.receivedDate;
 
-      const { error } = await supabase
-        .from('company_revenues')
-        .update(updateData)
-        .eq('id', id);
+      const result = await handleOfflineOperation(
+        () => supabase.from('company_revenues').update(updateData).eq('id', id),
+        {
+          type: 'update',
+          table: 'company_revenues',
+          data: updateData,
+          recordId: id
+        }
+      );
 
-      if (error) {
-        console.error('Error updating revenue:', error);
-        throw new Error(`Erro ao atualizar receita: ${error.message}`);
+      if (result !== null || !result?.error) {
+        toast({
+          title: "Sucesso",
+          description: "Receita atualizada com sucesso!"
+        });
       }
-      
-      toast({
-        title: "Sucesso",
-        description: "Receita atualizada com sucesso!"
-      });
     } catch (error: any) {
       console.error('Error in updateRevenue:', error);
       toast({
@@ -341,7 +410,7 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [addPendingOperation]);
 
   const updateCompanyExpense = useCallback(async (id: string, data: any) => {
     setIsLoading(true);
@@ -356,20 +425,22 @@ export const useSupabaseData = () => {
       if (data.paid !== undefined) updateData.paid = data.paid;
       if (data.paidDate !== undefined) updateData.paid_date = data.paidDate;
 
-      const { error } = await supabase
-        .from('company_expenses')
-        .update(updateData)
-        .eq('id', id);
+      const result = await handleOfflineOperation(
+        () => supabase.from('company_expenses').update(updateData).eq('id', id),
+        {
+          type: 'update',
+          table: 'company_expenses',
+          data: updateData,
+          recordId: id
+        }
+      );
 
-      if (error) {
-        console.error('Error updating company expense:', error);
-        throw new Error(`Erro ao atualizar despesa: ${error.message}`);
+      if (result !== null || !result?.error) {
+        toast({
+          title: "Sucesso",
+          description: "Despesa atualizada com sucesso!"
+        });
       }
-      
-      toast({
-        title: "Sucesso",
-        description: "Despesa atualizada com sucesso!"
-      });
     } catch (error: any) {
       console.error('Error in updateCompanyExpense:', error);
       toast({
@@ -381,7 +452,7 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [addPendingOperation]);
 
   const updatePersonalExpense = useCallback(async (id: string, data: any) => {
     setIsLoading(true);
@@ -395,20 +466,22 @@ export const useSupabaseData = () => {
       if (data.paid !== undefined) updateData.paid = data.paid;
       if (data.paidDate !== undefined) updateData.paid_date = data.paidDate;
 
-      const { error } = await supabase
-        .from('personal_expenses')
-        .update(updateData)
-        .eq('id', id);
+      const result = await handleOfflineOperation(
+        () => supabase.from('personal_expenses').update(updateData).eq('id', id),
+        {
+          type: 'update',
+          table: 'personal_expenses',
+          data: updateData,
+          recordId: id
+        }
+      );
 
-      if (error) {
-        console.error('Error updating personal expense:', error);
-        throw new Error(`Erro ao atualizar conta: ${error.message}`);
+      if (result !== null || !result?.error) {
+        toast({
+          title: "Sucesso",
+          description: "Conta atualizada com sucesso!"
+        });
       }
-      
-      toast({
-        title: "Sucesso",
-        description: "Conta atualizada com sucesso!"
-      });
     } catch (error: any) {
       console.error('Error in updatePersonalExpense:', error);
       toast({
@@ -420,26 +493,28 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [addPendingOperation]);
 
-  // Delete operations with better error handling
+  // Delete operations with offline support
   const deleteRevenue = useCallback(async (id: string) => {
     try {
       console.log('Deleting revenue:', id);
-      const { error } = await supabase
-        .from('company_revenues')
-        .delete()
-        .eq('id', id);
+      const result = await handleOfflineOperation(
+        () => supabase.from('company_revenues').delete().eq('id', id),
+        {
+          type: 'delete',
+          table: 'company_revenues',
+          data: {},
+          recordId: id
+        }
+      );
 
-      if (error) {
-        console.error('Error deleting revenue:', error);
-        throw new Error(`Erro ao excluir receita: ${error.message}`);
+      if (result !== null || !result?.error) {
+        toast({
+          title: "Sucesso",
+          description: "Receita excluída com sucesso!"
+        });
       }
-
-      toast({
-        title: "Sucesso",
-        description: "Receita excluída com sucesso!"
-      });
     } catch (error: any) {
       console.error('Error in deleteRevenue:', error);
       toast({
@@ -449,25 +524,27 @@ export const useSupabaseData = () => {
       });
       throw error;
     }
-  }, []);
+  }, [addPendingOperation]);
 
   const deleteCompanyExpense = useCallback(async (id: string) => {
     try {
       console.log('Deleting company expense:', id);
-      const { error } = await supabase
-        .from('company_expenses')
-        .delete()
-        .eq('id', id);
+      const result = await handleOfflineOperation(
+        () => supabase.from('company_expenses').delete().eq('id', id),
+        {
+          type: 'delete',
+          table: 'company_expenses',
+          data: {},
+          recordId: id
+        }
+      );
 
-      if (error) {
-        console.error('Error deleting company expense:', error);
-        throw new Error(`Erro ao excluir despesa: ${error.message}`);
+      if (result !== null || !result?.error) {
+        toast({
+          title: "Sucesso",
+          description: "Despesa excluída com sucesso!"
+        });
       }
-
-      toast({
-        title: "Sucesso",
-        description: "Despesa excluída com sucesso!"
-      });
     } catch (error: any) {
       console.error('Error in deleteCompanyExpense:', error);
       toast({
@@ -477,25 +554,27 @@ export const useSupabaseData = () => {
       });
       throw error;
     }
-  }, []);
+  }, [addPendingOperation]);
 
   const deletePersonalExpense = useCallback(async (id: string) => {
     try {
       console.log('Deleting personal expense:', id);
-      const { error } = await supabase
-        .from('personal_expenses')
-        .delete()
-        .eq('id', id);
+      const result = await handleOfflineOperation(
+        () => supabase.from('personal_expenses').delete().eq('id', id),
+        {
+          type: 'delete',
+          table: 'personal_expenses',
+          data: {},
+          recordId: id
+        }
+      );
 
-      if (error) {
-        console.error('Error deleting personal expense:', error);
-        throw new Error(`Erro ao excluir conta: ${error.message}`);
+      if (result !== null || !result?.error) {
+        toast({
+          title: "Sucesso",
+          description: "Conta excluída com sucesso!"
+        });
       }
-
-      toast({
-        title: "Sucesso",
-        description: "Conta excluída com sucesso!"
-      });
     } catch (error: any) {
       console.error('Error in deletePersonalExpense:', error);
       toast({
@@ -505,14 +584,14 @@ export const useSupabaseData = () => {
       });
       throw error;
     }
-  }, []);
+  }, [addPendingOperation]);
 
   // Confirmation operations
   const confirmReceived = useCallback(async (id: string, receivedDate: Date = new Date()) => {
     try {
       await updateRevenue(id, { received: true, receivedDate: dateTransformers.toSupabase(receivedDate) });
     } catch (error) {
-      console.error('Error confirming received:', error);
+      console.error('Error in confirmReceived:', error);
       throw error;
     }
   }, [updateRevenue]);
@@ -520,12 +599,20 @@ export const useSupabaseData = () => {
   const confirmPayment = useCallback(async (id: string, type: 'company' | 'personal', paidDate: Date = new Date()) => {
     try {
       if (type === 'company') {
-        await updateCompanyExpense(id, { paid: true, paidDate: dateTransformers.toSupabase(paidDate) });
+        const transformedData = {
+          paid: true,
+          paidDate: dateTransformers.toSupabase(paidDate)
+        };
+        await updateCompanyExpense(id, transformedData);
       } else {
-        await updatePersonalExpense(id, { paid: true, paidDate: dateTransformers.toSupabase(paidDate) });
+        const transformedData = {
+          paid: true,
+          paidDate: dateTransformers.toSupabase(paidDate)
+        };
+        await updatePersonalExpense(id, transformedData);
       }
     } catch (error) {
-      console.error('Error confirming payment:', error);
+      console.error('Error in confirmPayment:', error);
       throw error;
     }
   }, [updateCompanyExpense, updatePersonalExpense]);
