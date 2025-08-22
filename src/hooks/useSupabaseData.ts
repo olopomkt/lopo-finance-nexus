@@ -226,7 +226,11 @@ export const useSupabaseData = () => {
       };
 
       const result = await handleOfflineOperation(
-        () => supabase.from('company_revenues').insert(insertData).select().single(),
+        async () => {
+          const { data: insertedData, error } = await supabase.from('company_revenues').insert(insertData).select().single();
+          if (error) throw error;
+          return { data: insertedData, error: null };
+        },
         {
           type: 'save',
           table: 'company_revenues',
@@ -279,7 +283,11 @@ export const useSupabaseData = () => {
       };
 
       const result = await handleOfflineOperation(
-        () => supabase.from('company_expenses').insert(insertData).select().single(),
+        async () => {
+          const { data: insertedData, error } = await supabase.from('company_expenses').insert(insertData).select().single();
+          if (error) throw error;
+          return { data: insertedData, error: null };
+        },
         {
           type: 'save',
           table: 'company_expenses',
@@ -330,7 +338,11 @@ export const useSupabaseData = () => {
       };
 
       const result = await handleOfflineOperation(
-        () => supabase.from('personal_expenses').insert(insertData).select().single(),
+        async () => {
+          const { data: insertedData, error } = await supabase.from('personal_expenses').insert(insertData).select().single();
+          if (error) throw error;
+          return { data: insertedData, error: null };
+        },
         {
           type: 'save',
           table: 'personal_expenses',
@@ -384,7 +396,11 @@ export const useSupabaseData = () => {
       if (data.receivedDate !== undefined) updateData.received_date = data.receivedDate;
 
       const result = await handleOfflineOperation(
-        () => supabase.from('company_revenues').update(updateData).eq('id', id),
+        async () => {
+          const { error } = await supabase.from('company_revenues').update(updateData).eq('id', id);
+          if (error) throw error;
+          return { error: null };
+        },
         {
           type: 'update',
           table: 'company_revenues',
@@ -426,7 +442,11 @@ export const useSupabaseData = () => {
       if (data.paidDate !== undefined) updateData.paid_date = data.paidDate;
 
       const result = await handleOfflineOperation(
-        () => supabase.from('company_expenses').update(updateData).eq('id', id),
+        async () => {
+          const { error } = await supabase.from('company_expenses').update(updateData).eq('id', id);
+          if (error) throw error;
+          return { error: null };
+        },
         {
           type: 'update',
           table: 'company_expenses',
@@ -467,7 +487,11 @@ export const useSupabaseData = () => {
       if (data.paidDate !== undefined) updateData.paid_date = data.paidDate;
 
       const result = await handleOfflineOperation(
-        () => supabase.from('personal_expenses').update(updateData).eq('id', id),
+        async () => {
+          const { error } = await supabase.from('personal_expenses').update(updateData).eq('id', id);
+          if (error) throw error;
+          return { error: null };
+        },
         {
           type: 'update',
           table: 'personal_expenses',
@@ -500,7 +524,11 @@ export const useSupabaseData = () => {
     try {
       console.log('Deleting revenue:', id);
       const result = await handleOfflineOperation(
-        () => supabase.from('company_revenues').delete().eq('id', id),
+        async () => {
+          const { error } = await supabase.from('company_revenues').delete().eq('id', id);
+          if (error) throw error;
+          return { error: null };
+        },
         {
           type: 'delete',
           table: 'company_revenues',
@@ -530,7 +558,11 @@ export const useSupabaseData = () => {
     try {
       console.log('Deleting company expense:', id);
       const result = await handleOfflineOperation(
-        () => supabase.from('company_expenses').delete().eq('id', id),
+        async () => {
+          const { error } = await supabase.from('company_expenses').delete().eq('id', id);
+          if (error) throw error;
+          return { error: null };
+        },
         {
           type: 'delete',
           table: 'company_expenses',
@@ -560,7 +592,11 @@ export const useSupabaseData = () => {
     try {
       console.log('Deleting personal expense:', id);
       const result = await handleOfflineOperation(
-        () => supabase.from('personal_expenses').delete().eq('id', id),
+        async () => {
+          const { error } = await supabase.from('personal_expenses').delete().eq('id', id);
+          if (error) throw error;
+          return { error: null };
+        },
         {
           type: 'delete',
           table: 'personal_expenses',

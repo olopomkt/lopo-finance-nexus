@@ -9,28 +9,23 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Filter, X, Calendar as CalendarIcon, ArrowUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { FilterState } from '@/hooks/useUnifiedFilters';
+import { useGlobalFilters } from '@/contexts/FilterContext';
 
 interface Props {
-  filters: FilterState;
-  onFilterChange: (key: keyof FilterState, value: any) => void;
-  onClearFilters: () => void;
   showPaymentMethodFilter?: boolean;
 }
 
 export const FilterBar = ({ 
-  filters, 
-  onFilterChange, 
-  onClearFilters, 
   showPaymentMethodFilter = true 
 }: Props) => {
+  const { filters, updateFilter, clearFilters } = useGlobalFilters();
   const [isOpen, setIsOpen] = useState(false);
 
   const activeFiltersCount = [
     filters.searchTerm,
-    filters.dateFrom,
-    filters.dateTo,
-    filters.paymentMethod
+    filters.dateRange.start,
+    filters.dateRange.end,
+    filters.paymentMethod !== 'all' ? filters.paymentMethod : null
   ].filter(Boolean).length;
 
   return (
@@ -41,7 +36,7 @@ export const FilterBar = ({
         <Input
           placeholder="Buscar por nome, serviço ou observação..."
           value={filters.searchTerm}
-          onChange={(e) => onFilterChange('searchTerm', e.target.value)}
+          onChange={(e) => updateFilter('searchTerm', e.target.value)}
           className="pl-10 glass-effect border-neon-blue/20 focus:border-neon-blue/50"
         />
       </div>
@@ -65,7 +60,7 @@ export const FilterBar = ({
         {activeFiltersCount > 0 && (
           <Button
             variant="ghost"
-            onClick={onClearFilters}
+            onClick={clearFilters}
             className="text-red-400 hover:bg-red-500/10"
           >
             <X className="h-4 w-4 mr-2" />
@@ -88,14 +83,14 @@ export const FilterBar = ({
                     className="w-full justify-start text-left font-normal glass-effect border-neon-cyan/20"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {filters.dateFrom ? format(filters.dateFrom, 'dd/MM/yyyy', { locale: ptBR }) : 'Selecionar'}
+                    {filters.dateRange.start ? format(filters.dateRange.start, 'dd/MM/yyyy', { locale: ptBR }) : 'Selecionar'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-background border-neon-cyan/20">
                   <Calendar
                     mode="single"
-                    selected={filters.dateFrom || undefined}
-                    onSelect={(date) => onFilterChange('dateFrom', date)}
+                    selected={filters.dateRange.start || undefined}
+                    onSelect={(date) => updateFilter('dateRange', { ...filters.dateRange, start: date })}
                     locale={ptBR}
                   />
                 </PopoverContent>
@@ -112,14 +107,14 @@ export const FilterBar = ({
                     className="w-full justify-start text-left font-normal glass-effect border-neon-cyan/20"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {filters.dateTo ? format(filters.dateTo, 'dd/MM/yyyy', { locale: ptBR }) : 'Selecionar'}
+                    {filters.dateRange.end ? format(filters.dateRange.end, 'dd/MM/yyyy', { locale: ptBR }) : 'Selecionar'}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-background border-neon-cyan/20">
                   <Calendar
                     mode="single"
-                    selected={filters.dateTo || undefined}
-                    onSelect={(date) => onFilterChange('dateTo', date)}
+                    selected={filters.dateRange.end || undefined}
+                    onSelect={(date) => updateFilter('dateRange', { ...filters.dateRange, end: date })}
                     locale={ptBR}
                   />
                 </PopoverContent>
@@ -131,14 +126,14 @@ export const FilterBar = ({
               <div className="space-y-2">
                 <label className="text-sm font-medium text-neon-cyan">Forma de Pagamento</label>
                 <Select
-                  value={filters.paymentMethod || ''}
-                  onValueChange={(value) => onFilterChange('paymentMethod', value || null)}
+                  value={filters.paymentMethod}
+                  onValueChange={(value) => updateFilter('paymentMethod', value)}
                 >
                   <SelectTrigger className="glass-effect border-neon-cyan/20">
                     <SelectValue placeholder="Todas" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border-neon-cyan/20">
-                    <SelectItem value="">Todas</SelectItem>
+                    <SelectItem value="all">Todas</SelectItem>
                     <SelectItem value="Pix">Pix</SelectItem>
                     <SelectItem value="Cartão">Cartão</SelectItem>
                     <SelectItem value="Outro">Outro</SelectItem>
@@ -153,7 +148,7 @@ export const FilterBar = ({
               <div className="flex gap-2">
                 <Select
                   value={filters.sortBy}
-                  onValueChange={(value: 'date' | 'price' | 'name') => onFilterChange('sortBy', value)}
+                  onValueChange={(value: 'date' | 'price' | 'name') => updateFilter('sortBy', value)}
                 >
                   <SelectTrigger className="glass-effect border-neon-cyan/20 flex-1">
                     <SelectValue />
@@ -167,7 +162,7 @@ export const FilterBar = ({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onFilterChange('sortOrder', filters.sortOrder === 'asc' ? 'desc' : 'asc')}
+                  onClick={() => updateFilter('sortOrder', filters.sortOrder === 'asc' ? 'desc' : 'asc')}
                   className="glass-effect border-neon-cyan/20"
                 >
                   <ArrowUpDown className="h-4 w-4" />

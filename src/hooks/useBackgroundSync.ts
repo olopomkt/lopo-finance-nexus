@@ -10,7 +10,8 @@ export const useBackgroundSync = () => {
     if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
       try {
         const registration = await navigator.serviceWorker.ready;
-        await registration.sync.register('sync-new-data');
+        // Type assertion to handle the sync property
+        (registration as any).sync?.register('sync-new-data');
         console.log('[Background Sync] Registered sync event');
       } catch (error) {
         console.error('[Background Sync] Failed to register:', error);

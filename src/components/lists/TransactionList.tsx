@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +8,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
 import { useFinanceData } from '@/hooks/useFinanceData';
-import { useUnifiedFilters } from '@/hooks/useUnifiedFilters';
+import { useFilteredData } from '@/hooks/useFilteredData';
 import { FilterBar } from '@/components/filters/FilterBar';
 import { toast } from '@/hooks/use-toast';
 
@@ -30,11 +29,14 @@ export const TransactionList = ({ onEditRevenue, onEditCompanyExpense, onEditPer
   } = useFinanceData();
 
   const {
-    filters,
-    updateFilter,
-    clearFilters,
-    filterTransactions
-  } = useUnifiedFilters();
+    filteredRevenues,
+    filteredCompanyExpenses,
+    filteredPersonalExpenses
+  } = useFilteredData({
+    companyRevenues,
+    companyExpenses,
+    personalExpenses
+  });
 
   const handleDeleteRevenue = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta receita?')) {
@@ -85,19 +87,10 @@ export const TransactionList = ({ onEditRevenue, onEditCompanyExpense, onEditPer
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
-  // Apply filters
-  const filteredRevenues = filterTransactions(companyRevenues, 'revenue');
-  const filteredCompanyExpenses = filterTransactions(companyExpenses, 'expense');
-  const filteredPersonalExpenses = filterTransactions(personalExpenses, 'expense');
-
   return (
     <div className="space-y-6">
       {/* Filter Bar */}
-      <FilterBar
-        filters={filters}
-        onFilterChange={updateFilter}
-        onClearFilters={clearFilters}
-      />
+      <FilterBar />
 
       <div className="space-y-8">
         {/* Company Revenues */}
@@ -113,10 +106,7 @@ export const TransactionList = ({ onEditRevenue, onEditCompanyExpense, onEditPer
             <AnimatePresence>
               {filteredRevenues.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">
-                  {filters.searchTerm || filters.dateFrom || filters.dateTo || filters.paymentMethod 
-                    ? 'Nenhuma receita encontrada com os filtros aplicados' 
-                    : 'Nenhuma receita cadastrada'
-                  }
+                  Nenhuma receita encontrada com os filtros aplicados
                 </p>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -181,10 +171,7 @@ export const TransactionList = ({ onEditRevenue, onEditCompanyExpense, onEditPer
             <AnimatePresence>
               {filteredCompanyExpenses.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">
-                  {filters.searchTerm || filters.dateFrom || filters.dateTo || filters.paymentMethod 
-                    ? 'Nenhuma despesa encontrada com os filtros aplicados' 
-                    : 'Nenhuma despesa cadastrada'
-                  }
+                  Nenhuma despesa encontrada com os filtros aplicados
                 </p>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -248,10 +235,7 @@ export const TransactionList = ({ onEditRevenue, onEditCompanyExpense, onEditPer
             <AnimatePresence>
               {filteredPersonalExpenses.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">
-                  {filters.searchTerm || filters.dateFrom || filters.dateTo 
-                    ? 'Nenhuma conta encontrada com os filtros aplicados' 
-                    : 'Nenhuma conta cadastrada'
-                  }
+                  Nenhuma conta encontrada com os filtros aplicados
                 </p>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
