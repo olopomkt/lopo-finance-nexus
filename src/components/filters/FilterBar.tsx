@@ -10,6 +10,7 @@ import { Search, Filter, X, Calendar as CalendarIcon, ArrowUpDown } from 'lucide
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useGlobalFilters } from '@/contexts/FilterContext';
+import { PaymentMethod } from '@/types/finance';
 
 interface Props {
   showPaymentMethodFilter?: boolean;
@@ -127,7 +128,7 @@ export const FilterBar = ({
                 <label className="text-sm font-medium text-neon-cyan">Forma de Pagamento</label>
                 <Select
                   value={filters.paymentMethod}
-                  onValueChange={(value) => updateFilter('paymentMethod', value)}
+                  onValueChange={(value) => updateFilter('paymentMethod', value as PaymentMethod | 'all')}
                 >
                   <SelectTrigger className="glass-effect border-neon-cyan/20">
                     <SelectValue placeholder="Todas" />
