@@ -47,6 +47,8 @@ export default defineConfig(({ mode }) => ({
             },
           },
         ],
+        // Carrega o handler de Background Sync dentro do SW gerado
+        importScripts: ['/sync-handler.js'],
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {

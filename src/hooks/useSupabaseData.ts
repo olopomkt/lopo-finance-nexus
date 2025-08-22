@@ -5,6 +5,7 @@ import { toast } from '@/hooks/use-toast';
 import { dateTransformers } from '@/lib/dateUtils';
 import { useBackgroundSync } from '@/hooks/useBackgroundSync';
 import type { Database } from '@/integrations/supabase/types';
+import { addToOutbox } from '@/lib/offlineSync';
 
 export const useSupabaseData = () => {
   const [companyRevenues, setCompanyRevenues] = useState<CompanyRevenue[]>([]);
@@ -14,7 +15,7 @@ export const useSupabaseData = () => {
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(true);
   
-  const { addPendingOperation, syncPendingOperations } = useBackgroundSync();
+  const { syncPendingOperations } = useBackgroundSync();
   
   // Use ref to prevent multiple subscriptions
   const channelRef = useRef<any>(null);
@@ -25,7 +26,9 @@ export const useSupabaseData = () => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'SYNC_OFFLINE_DATA') {
         console.log('[Main] Received sync request from SW');
-        syncPendingOperations();
+        // Mantém compatibilidade (pode não haver nada a sincronizar aqui),
+        // mas garantimos um refresh geral.
+        syncPendingOperations?.();
       }
     };
 
@@ -35,6 +38,119 @@ export const useSupabaseData = () => {
       navigator.serviceWorker?.removeEventListener('message', handleMessage);
     };
   }, [syncPendingOperations]);
+
+  // Helper para atualizar UI de forma otimista quando offline
+  const applyOptimisticChange = useCallback((
+    op: 'save' | 'update' | 'delete',
+    table: 'company_revenues' | 'company_expenses' | 'personal_expenses',
+    payload: any,
+    recordId?: string
+  ) => {
+    if (table === 'company_revenues') {
+      if (op === 'save') {
+        const optimistic: CompanyRevenue = {
+          id: `tmp-${crypto.randomUUID()}`,
+          clientName: payload.client_name ?? '',
+          service: payload.service ?? '',
+          price: Number(payload.price) || 0,
+          paymentMethod: payload.payment_method,
+          contractType: payload.contract_type,
+          contractMonths: payload.contract_months ?? undefined,
+          paymentDate: dateTransformers.fromSupabase(payload.payment_date),
+          accountType: payload.account_type,
+          received: !!payload.received,
+          receivedDate: payload.received_date ? dateTransformers.fromSupabase(payload.received_date) : undefined,
+          createdAt: new Date()
+        };
+        setCompanyRevenues(prev => [optimistic, ...prev]);
+      } else if (op === 'update' && recordId) {
+        setCompanyRevenues(prev => prev.map(item => {
+          if (item.id !== recordId) return item;
+          return {
+            ...item,
+            clientName: payload.client_name ?? item.clientName,
+            service: payload.service ?? item.service,
+            price: payload.price !== undefined ? Number(payload.price) : item.price,
+            paymentMethod: payload.payment_method ?? item.paymentMethod,
+            contractType: payload.contract_type ?? item.contractType,
+            contractMonths: payload.contract_months ?? item.contractMonths,
+            paymentDate: payload.payment_date ? dateTransformers.fromSupabase(payload.payment_date) : item.paymentDate,
+            accountType: payload.account_type ?? item.accountType,
+            received: payload.received ?? item.received,
+            receivedDate: payload.received_date ? dateTransformers.fromSupabase(payload.received_date) : item.receivedDate,
+          };
+        }));
+      } else if (op === 'delete' && recordId) {
+        setCompanyRevenues(prev => prev.filter(item => item.id !== recordId));
+      }
+      return;
+    }
+
+    if (table === 'company_expenses') {
+      if (op === 'save') {
+        const optimistic: CompanyExpense = {
+          id: `tmp-${crypto.randomUUID()}`,
+          name: payload.name ?? '',
+          price: Number(payload.price) || 0,
+          paymentMethod: payload.payment_method,
+          type: payload.type,
+          paymentDate: dateTransformers.fromSupabase(payload.payment_date),
+          paid: !!payload.paid,
+          paidDate: payload.paid_date ? dateTransformers.fromSupabase(payload.paid_date) : undefined,
+          createdAt: new Date()
+        };
+        setCompanyExpenses(prev => [optimistic, ...prev]);
+      } else if (op === 'update' && recordId) {
+        setCompanyExpenses(prev => prev.map(item => {
+          if (item.id !== recordId) return item;
+          return {
+            ...item,
+            name: payload.name ?? item.name,
+            price: payload.price !== undefined ? Number(payload.price) : item.price,
+            paymentMethod: payload.payment_method ?? item.paymentMethod,
+            type: payload.type ?? item.type,
+            paymentDate: payload.payment_date ? dateTransformers.fromSupabase(payload.payment_date) : item.paymentDate,
+            paid: payload.paid ?? item.paid,
+            paidDate: payload.paid_date ? dateTransformers.fromSupabase(payload.paid_date) : item.paidDate,
+          };
+        }));
+      } else if (op === 'delete' && recordId) {
+        setCompanyExpenses(prev => prev.filter(item => item.id !== recordId));
+      }
+      return;
+    }
+
+    if (table === 'personal_expenses') {
+      if (op === 'save') {
+        const optimistic: PersonalExpense = {
+          id: `tmp-${crypto.randomUUID()}`,
+          name: payload.name ?? '',
+          price: Number(payload.price) || 0,
+          paymentDate: dateTransformers.fromSupabase(payload.payment_date),
+          observation: payload.observation ?? undefined,
+          paid: !!payload.paid,
+          paidDate: payload.paid_date ? dateTransformers.fromSupabase(payload.paid_date) : undefined,
+          createdAt: new Date()
+        };
+        setPersonalExpenses(prev => [optimistic, ...prev]);
+      } else if (op === 'update' && recordId) {
+        setPersonalExpenses(prev => prev.map(item => {
+          if (item.id !== recordId) return item;
+          return {
+            ...item,
+            name: payload.name ?? item.name,
+            price: payload.price !== undefined ? Number(payload.price) : item.price,
+            paymentDate: payload.payment_date ? dateTransformers.fromSupabase(payload.payment_date) : item.paymentDate,
+            observation: payload.observation ?? item.observation,
+            paid: payload.paid ?? item.paid,
+            paidDate: payload.paid_date ? dateTransformers.fromSupabase(payload.paid_date) : item.paidDate,
+          };
+        }));
+      } else if (op === 'delete' && recordId) {
+        setPersonalExpenses(prev => prev.filter(item => item.id !== recordId));
+      }
+    }
+  }, []);
 
   // Helper to handle offline operations
   const handleOfflineOperation = async (
@@ -50,27 +166,40 @@ export const useSupabaseData = () => {
       const result = await operation();
       setIsConnected(true);
       return result;
-    } catch (error: any) {
+    } catch (error) {
       console.error('Operation failed, checking if offline:', error);
       
-      // Check if it's a network error
-      if (error.message?.includes('Failed to fetch') || 
+      const isNetworkIssue =
+        !navigator.onLine ||
+        (error && (error.message?.includes('Failed to fetch') ||
           error.message?.includes('NetworkError') ||
-          error.code === 'NETWORK_FAILURE') {
-        
+          error.code === 'NETWORK_FAILURE'));
+
+      if (isNetworkIssue) {
         setIsConnected(false);
-        
-        // Add to pending operations
-        await addPendingOperation(fallbackData);
-        
+
+        // Adiciona à outbox para o SW sincronizar depois
+        await addToOutbox({
+          tableName: fallbackData.table,
+          action: fallbackData.type,
+          data: fallbackData.data,
+          recordId: fallbackData.recordId,
+        });
+
+        // Registra background sync
+        navigator.serviceWorker?.ready
+          .then((reg) => reg.sync.register('sync-outbox'))
+          .catch((e) => console.error('Failed to register sync:', e));
+
         toast({
           title: "Operação salva offline",
-          description: "A operação será sincronizada quando a conexão for restaurada."
+          description: "Será sincronizada automaticamente quando a conexão retornar."
         });
-        
-        return null; // Indicate offline operation
+
+        // Retorna nulo como indicador de operação offline (para atualização otimista)
+        return null;
       }
-      
+
       // Re-throw other errors
       throw error;
     }
@@ -227,7 +356,7 @@ export const useSupabaseData = () => {
 
       const result = await handleOfflineOperation(
         async () => {
-          const { data: insertedData, error } = await supabase.from('company_revenues').insert(insertData).select().single();
+          const { data: insertedData, error } = await supabase.from('company_revenues').insert(insertData).select().maybeSingle();
           if (error) throw error;
           return { data: insertedData, error: null };
         },
@@ -245,7 +374,7 @@ export const useSupabaseData = () => {
         });
         return result.data;
       } else if (result === null) {
-        // Offline operation - success message already shown
+        applyOptimisticChange('save', 'company_revenues', insertData);
         return null;
       }
 
@@ -265,7 +394,7 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [addPendingOperation]);
+  }, [applyOptimisticChange]);
 
   const saveCompanyExpense = useCallback(async (data: any) => {
     setIsLoading(true);
@@ -284,7 +413,7 @@ export const useSupabaseData = () => {
 
       const result = await handleOfflineOperation(
         async () => {
-          const { data: insertedData, error } = await supabase.from('company_expenses').insert(insertData).select().single();
+          const { data: insertedData, error } = await supabase.from('company_expenses').insert(insertData).select().maybeSingle();
           if (error) throw error;
           return { data: insertedData, error: null };
         },
@@ -302,6 +431,7 @@ export const useSupabaseData = () => {
         });
         return result.data;
       } else if (result === null) {
+        applyOptimisticChange('save', 'company_expenses', insertData);
         return null;
       }
 
@@ -321,7 +451,7 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [addPendingOperation]);
+  }, [applyOptimisticChange]);
 
   const savePersonalExpense = useCallback(async (data: any) => {
     setIsLoading(true);
@@ -339,7 +469,7 @@ export const useSupabaseData = () => {
 
       const result = await handleOfflineOperation(
         async () => {
-          const { data: insertedData, error } = await supabase.from('personal_expenses').insert(insertData).select().single();
+          const { data: insertedData, error } = await supabase.from('personal_expenses').insert(insertData).select().maybeSingle();
           if (error) throw error;
           return { data: insertedData, error: null };
         },
@@ -357,6 +487,7 @@ export const useSupabaseData = () => {
         });
         return result.data;
       } else if (result === null) {
+        applyOptimisticChange('save', 'personal_expenses', insertData);
         return null;
       }
 
@@ -376,9 +507,9 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [addPendingOperation]);
+  }, [applyOptimisticChange]);
 
-  // Update operations with better error handling
+  // Update operations
   const updateRevenue = useCallback(async (id: string, data: any) => {
     setIsLoading(true);
     try {
@@ -414,6 +545,8 @@ export const useSupabaseData = () => {
           title: "Sucesso",
           description: "Receita atualizada com sucesso!"
         });
+      } else if (result === null) {
+        applyOptimisticChange('update', 'company_revenues', updateData, id);
       }
     } catch (error: any) {
       console.error('Error in updateRevenue:', error);
@@ -426,7 +559,7 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [addPendingOperation]);
+  }, [applyOptimisticChange]);
 
   const updateCompanyExpense = useCallback(async (id: string, data: any) => {
     setIsLoading(true);
@@ -460,6 +593,8 @@ export const useSupabaseData = () => {
           title: "Sucesso",
           description: "Despesa atualizada com sucesso!"
         });
+      } else if (result === null) {
+        applyOptimisticChange('update', 'company_expenses', updateData, id);
       }
     } catch (error: any) {
       console.error('Error in updateCompanyExpense:', error);
@@ -472,7 +607,7 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [addPendingOperation]);
+  }, [applyOptimisticChange]);
 
   const updatePersonalExpense = useCallback(async (id: string, data: any) => {
     setIsLoading(true);
@@ -505,6 +640,8 @@ export const useSupabaseData = () => {
           title: "Sucesso",
           description: "Conta atualizada com sucesso!"
         });
+      } else if (result === null) {
+        applyOptimisticChange('update', 'personal_expenses', updateData, id);
       }
     } catch (error: any) {
       console.error('Error in updatePersonalExpense:', error);
@@ -517,9 +654,9 @@ export const useSupabaseData = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [addPendingOperation]);
+  }, [applyOptimisticChange]);
 
-  // Delete operations with offline support
+  // Delete operations
   const deleteRevenue = useCallback(async (id: string) => {
     try {
       console.log('Deleting revenue:', id);
@@ -542,6 +679,8 @@ export const useSupabaseData = () => {
           title: "Sucesso",
           description: "Receita excluída com sucesso!"
         });
+      } else if (result === null) {
+        applyOptimisticChange('delete', 'company_revenues', {}, id);
       }
     } catch (error: any) {
       console.error('Error in deleteRevenue:', error);
@@ -552,7 +691,7 @@ export const useSupabaseData = () => {
       });
       throw error;
     }
-  }, [addPendingOperation]);
+  }, [applyOptimisticChange]);
 
   const deleteCompanyExpense = useCallback(async (id: string) => {
     try {
@@ -576,6 +715,8 @@ export const useSupabaseData = () => {
           title: "Sucesso",
           description: "Despesa excluída com sucesso!"
         });
+      } else if (result === null) {
+        applyOptimisticChange('delete', 'company_expenses', {}, id);
       }
     } catch (error: any) {
       console.error('Error in deleteCompanyExpense:', error);
@@ -586,7 +727,7 @@ export const useSupabaseData = () => {
       });
       throw error;
     }
-  }, [addPendingOperation]);
+  }, [applyOptimisticChange]);
 
   const deletePersonalExpense = useCallback(async (id: string) => {
     try {
@@ -610,6 +751,8 @@ export const useSupabaseData = () => {
           title: "Sucesso",
           description: "Conta excluída com sucesso!"
         });
+      } else if (result === null) {
+        applyOptimisticChange('delete', 'personal_expenses', {}, id);
       }
     } catch (error: any) {
       console.error('Error in deletePersonalExpense:', error);
@@ -620,7 +763,7 @@ export const useSupabaseData = () => {
       });
       throw error;
     }
-  }, [addPendingOperation]);
+  }, [applyOptimisticChange]);
 
   // Confirmation operations
   const confirmReceived = useCallback(async (id: string, receivedDate: Date = new Date()) => {
