@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
@@ -173,7 +174,7 @@ export const useSupabaseData = () => {
         !navigator.onLine ||
         (error && (error.message?.includes('Failed to fetch') ||
           error.message?.includes('NetworkError') ||
-          error.code === 'NETWORK_FAILURE'));
+          (error as any).code === 'NETWORK_FAILURE'));
 
       if (isNetworkIssue) {
         setIsConnected(false);
@@ -186,9 +187,9 @@ export const useSupabaseData = () => {
           recordId: fallbackData.recordId,
         });
 
-        // Registra background sync
+        // Registra background sync (com asserção para compatibilidade de tipos)
         navigator.serviceWorker?.ready
-          .then((reg) => reg.sync.register('sync-outbox'))
+          .then((reg) => (reg as any)?.sync?.register('sync-outbox'))
           .catch((e) => console.error('Failed to register sync:', e));
 
         toast({
