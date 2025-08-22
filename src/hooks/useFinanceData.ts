@@ -6,7 +6,7 @@ import { CompanyRevenueFormData, CompanyExpenseFormData, PersonalExpenseFormData
 export const useFinanceData = () => {
   const supabaseHook = useSupabaseData();
 
-  // Wrapper functions que aplicam transformações de data com melhor tratamento de erros
+  // Wrapper functions que aplicam transformações de data apenas para dados de formulário
   const saveRevenue = async (data: CompanyRevenueFormData) => {
     try {
       const transformedData = {
@@ -97,10 +97,10 @@ export const useFinanceData = () => {
     }
   };
 
-  // Funções de confirmação com transformação correta
+  // Simplified confirmation functions - delegate directly to supabase hook
   const confirmReceived = async (id: string, receivedDate: Date = new Date()) => {
     try {
-      await updateRevenue(id, { received: true, receivedDate });
+      await supabaseHook.confirmReceived(id, receivedDate);
     } catch (error) {
       console.error('Error in confirmReceived:', error);
       throw error;
@@ -109,19 +109,7 @@ export const useFinanceData = () => {
 
   const confirmPayment = async (id: string, type: 'company' | 'personal', paidDate: Date = new Date()) => {
     try {
-      if (type === 'company') {
-        const transformedData = {
-          paid: true,
-          paidDate: dateTransformers.toSupabase(paidDate)
-        };
-        await supabaseHook.updateCompanyExpense(id, transformedData);
-      } else {
-        const transformedData = {
-          paid: true,
-          paidDate: dateTransformers.toSupabase(paidDate)
-        };
-        await supabaseHook.updatePersonalExpense(id, transformedData);
-      }
+      await supabaseHook.confirmPayment(id, type, paidDate);
     } catch (error) {
       console.error('Error in confirmPayment:', error);
       throw error;
@@ -129,7 +117,7 @@ export const useFinanceData = () => {
   };
 
   return {
-    // Dados já transformados
+    // Dados já transformados corretamente pelo useSupabaseData
     companyRevenues: supabaseHook.companyRevenues,
     companyExpenses: supabaseHook.companyExpenses,
     personalExpenses: supabaseHook.personalExpenses,
@@ -139,7 +127,7 @@ export const useFinanceData = () => {
     error: supabaseHook.error,
     isConnected: supabaseHook.isConnected,
     
-    // Ações com transformação de data
+    // Ações de formulário com transformação de data
     saveRevenue,
     updateRevenue,
     saveCompanyExpense,
@@ -147,12 +135,12 @@ export const useFinanceData = () => {
     savePersonalExpense,
     updatePersonalExpense,
     
-    // Funções delete (expostas do hook supabase)
+    // Delegate delete operations directly to supabase hook
     deleteRevenue: supabaseHook.deleteRevenue,
     deleteCompanyExpense: supabaseHook.deleteCompanyExpense,
     deletePersonalExpense: supabaseHook.deletePersonalExpense,
     
-    // Outras ações
+    // Simplified confirmation actions
     confirmReceived,
     confirmPayment,
     

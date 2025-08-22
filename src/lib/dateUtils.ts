@@ -162,7 +162,7 @@ export const dateTransformers = {
   }
 };
 
-// Funções auxiliares para trabalhar com datas
+// Função centralizada para formatação de moeda
 export const formatCurrency = (value: number): string => {
   try {
     return new Intl.NumberFormat('pt-BR', { 
@@ -175,6 +175,7 @@ export const formatCurrency = (value: number): string => {
   }
 };
 
+// Função centralizada para formatação de data
 export const formatDate = (date: Date | string | null, formatStr: string = 'dd/MM/yyyy'): string => {
   return dateTransformers.formatForDisplay(date || new Date(), formatStr);
 };

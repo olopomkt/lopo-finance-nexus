@@ -3,12 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, User, TrendingDown } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { PersonalExpense } from '@/types';
 import { useFinanceData } from '@/hooks/useFinanceData';
-import { toast } from '@/hooks/use-toast';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { formatCurrency, formatDate } from '@/lib/dateUtils';
 
 interface Props {
   onEdit: (expense: PersonalExpense) => void;
@@ -27,23 +25,6 @@ export const PersonalExpenseList = ({ onEdit, expenses, showHeader = false, isLo
       } catch (error) {
         // Error is already handled in the hook
       }
-    }
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-  };
-
-  const formatDate = (date: Date | string) => {
-    try {
-      const dateObj = typeof date === 'string' ? new Date(date) : date;
-      if (isNaN(dateObj.getTime())) {
-        return 'Data inválida';
-      }
-      return format(dateObj, 'dd/MM/yyyy', { locale: ptBR });
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'Data inválida';
     }
   };
 
