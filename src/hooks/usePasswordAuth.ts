@@ -27,7 +27,7 @@ export function usePasswordAuth() {
     }
   }, []);
 
-  const login = useCallback(async (password: string) => {
+  const login = useCallback(async (password: string, keepLogged: boolean = false) => {
     setIsLoading(true);
     setError(null);
     
@@ -50,7 +50,8 @@ export function usePasswordAuth() {
       }
 
       if (data?.authenticated) {
-        const session = { timestamp: new Date().getTime() };
+        const sessionDuration = keepLogged ? (30 * 24 * 60 * 60 * 1000) : (24 * 60 * 60 * 1000); // 30 dias se keepLogged, senão 24 horas
+        const session = { timestamp: new Date().getTime(), duration: sessionDuration };
         localStorage.setItem(SESSION_KEY, JSON.stringify(session));
         setIsAuthenticated(true);
         console.log('Login successful');

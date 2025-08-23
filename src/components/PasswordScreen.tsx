@@ -1,38 +1,40 @@
-// src/components/PasswordScreen.tsx
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-// import { usePasswordAuth } from '@/hooks/usePasswordAuth'; // <-- 1. REMOVA ESTA LINHA
 
-// 2. ADICIONE A DEFINIÇÃO DAS PROPS
 interface PasswordScreenProps {
-  onLogin: (password: string, keepLogged: boolean) => boolean;
+  onLogin: (password: string, keepLogged: boolean) => Promise<boolean>;
 }
 
-// 3. RECEBA 'onLogin' VIA PROPS
 export const PasswordScreen = ({ onLogin }: PasswordScreenProps) => {
   const [password, setPassword] = useState('');
   const [keepLogged, setKeepLogged] = useState(false);
   const [error, setError] = useState('');
-  // const { login } = usePasswordAuth(); // <-- 4. REMOVA ESTA LINHA TAMBÉM
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 5. USE A PROP 'onLogin' EM VEZ DA FUNÇÃO 'login' LOCAL
-    if (onLogin(password, keepLogged)) {
-      setError('');
-    } else {
-      setError('Senha incorreta');
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const success = await onLogin(password, keepLogged);
+      if (!success) {
+        setError('Senha incorreta');
+        setPassword('');
+      }
+    } catch (err) {
+      setError('Erro na autenticação');
       setPassword('');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    // O seu JSX (toda a parte visual) continua exatamente o mesmo.
-    // Nenhuma mudança é necessária aqui.
     <div 
       className="min-h-screen bg-neutral-950 flex items-center justify-center p-4 relative"
       style={{
@@ -59,6 +61,7 @@ export const PasswordScreen = ({ onLogin }: PasswordScreenProps) => {
               className="w-full h-8 text-sm bg-white bg-opacity-20 border-white border-opacity-30 text-white placeholder:text-white placeholder:text-opacity-70 focus:bg-opacity-30"
               required
               maxLength={6}
+              disabled={isLoading}
             />
           </div>
           
@@ -72,6 +75,7 @@ export const PasswordScreen = ({ onLogin }: PasswordScreenProps) => {
               checked={keepLogged}
               onCheckedChange={(checked) => setKeepLogged(!!checked)}
               className="border-white border-opacity-50 data-[state=checked]:bg-white data-[state=checked]:text-neutral-950"
+              disabled={isLoading}
             />
             <label
               htmlFor="keepLogged"
@@ -84,8 +88,9 @@ export const PasswordScreen = ({ onLogin }: PasswordScreenProps) => {
           <Button
             type="submit"
             className="w-full h-8 bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-sm"
+            disabled={isLoading}
           >
-            Entrar
+            {isLoading ? 'Entrando...' : 'Entrar'}
           </Button>
         </form>
       </div>
