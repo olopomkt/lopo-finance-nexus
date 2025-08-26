@@ -1,166 +1,77 @@
 
 import { useMemo } from 'react';
-import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
 import { useGlobalFilters } from '@/contexts/FilterContext';
+import { CombinedEntry } from '@/types';
 
-type TransactionType = CompanyRevenue | CompanyExpense | PersonalExpense;
+// Função auxiliar para garantir que o objeto de data é válido
+const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime());
 
-interface UseFilteredDataProps {
-  companyRevenues: CompanyRevenue[];
-  companyExpenses: CompanyExpense[];
-  personalExpenses: PersonalExpense[];
-}
-
-export const useFilteredData = ({
-  companyRevenues,
-  companyExpenses,
-  personalExpenses
-}: UseFilteredDataProps) => {
+export function useFilteredData(data: CombinedEntry[] | undefined | null) {
   const { filters } = useGlobalFilters();
 
-  const filterTransactions = useMemo(() => {
-    return <T extends TransactionType>(transactions: T[]): T[] => {
-      if (!transactions.length) return [];
+  const filteredData = useMemo(() => {
+    // Etapa de segurança 1: Garantir que temos um array para trabalhar
+    if (!Array.isArray(data)) {
+      return [];
+    }
 
-      let filtered = [...transactions];
+    let items = [...data];
 
-      // Filtro de busca por texto
-      if (filters.searchTerm) {
-        const searchLower = filters.searchTerm.toLowerCase();
-        filtered = filtered.filter((transaction) => {
-          if ('clientName' in transaction) {
-            // CompanyRevenue
-            return (
-              transaction.clientName.toLowerCase().includes(searchLower) ||
-              (transaction as CompanyRevenue).service.toLowerCase().includes(searchLower)
-            );
-          } else {
-            // CompanyExpense ou PersonalExpense
-            return (
-              transaction.name.toLowerCase().includes(searchLower) ||
-              ('observation' in transaction && 
-                transaction.observation?.toLowerCase().includes(searchLower))
-            );
-          }
+    // Filtragem por tipo (receita/despesa)
+    if (filters.type && filters.type !== 'all') {
+      items = items.filter(item => {
+        if (filters.type === 'revenue') return 'description' in item;
+        if (filters.type === 'expense') return 'category' in item;
+        return true;
+      });
+    }
+
+    // Filtragem por categoria de despesa
+    if (filters.category && filters.category !== 'all') {
+      items = items.filter(item => 'category' in item && item.category === filters.category);
+    }
+
+    // Filtragem por período (mês/ano)
+    if (filters.period) {
+      try {
+        const [year, month] = filters.period.split('-').map(Number);
+        items = items.filter(item => {
+          if (!item.date) return false;
+          const itemDate = new Date(item.date);
+          return isValidDate(itemDate) && itemDate.getFullYear() === year && itemDate.getMonth() + 1 === month;
         });
+      } catch (e) {
+        console.error("Erro ao filtrar por período:", e);
+        // Se o período for inválido, não filtramos para não quebrar a UI
       }
-
-      // Filtro de data inicial
-      if (filters.dateRange.start) {
-        filtered = filtered.filter((transaction) => {
-          const transactionDate = new Date(transaction.paymentDate);
-          return transactionDate >= filters.dateRange.start!;
+    }
+    
+    // Filtragem por palavra-chave
+    if (filters.keyword && filters.keyword.trim() !== '') {
+        const lowercasedKeyword = filters.keyword.toLowerCase();
+        items = items.filter(item => {
+            const description = 'description' in item ? item.description : '';
+            const details = 'details' in item ? item.details : '';
+            return (description && description.toLowerCase().includes(lowercasedKeyword)) ||
+                   (details && details.toLowerCase().includes(lowercasedKeyword));
         });
-      }
+    }
 
-      // Filtro de data final
-      if (filters.dateRange.end) {
-        filtered = filtered.filter((transaction) => {
-          const transactionDate = new Date(transaction.paymentDate);
-          return transactionDate <= filters.dateRange.end!;
-        });
-      }
-
-      // Filtro de método de pagamento
-      if (filters.paymentMethod !== 'all' && filtered.length > 0 && 'paymentMethod' in filtered[0]) {
-        filtered = filtered.filter((transaction) => {
-          return (transaction as CompanyRevenue | CompanyExpense).paymentMethod === filters.paymentMethod;
-        });
-      }
-
-      // Filtro de tipo de contrato (apenas receitas)
-      if (filters.contractType !== 'all' && filtered.length > 0 && 'contractType' in filtered[0]) {
-        filtered = filtered.filter((transaction) => {
-          return (transaction as CompanyRevenue).contractType === filters.contractType;
-        });
-      }
-
-      // Filtro de tipo de despesa (apenas despesas empresariais)
-      if (filters.expenseType !== 'all' && filtered.length > 0 && 'type' in filtered[0]) {
-        filtered = filtered.filter((transaction) => {
-          return (transaction as CompanyExpense).type === filters.expenseType;
-        });
-      }
-
-      // Filtro de tipo de conta (apenas receitas)
-      if (filters.accountType !== 'all' && filtered.length > 0 && 'accountType' in filtered[0]) {
-        filtered = filtered.filter((transaction) => {
-          return (transaction as CompanyRevenue).accountType === filters.accountType;
-        });
-      }
-
-      // Filtro de status
-      if (filters.status !== 'all') {
-        filtered = filtered.filter((transaction) => {
-          if ('received' in transaction) {
-            // CompanyRevenue
-            const revenue = transaction as CompanyRevenue;
-            if (filters.status === 'received') return revenue.received;
-            if (filters.status === 'pending') return !revenue.received;
-          } else if ('paid' in transaction) {
-            // CompanyExpense ou PersonalExpense
-            const expense = transaction as CompanyExpense | PersonalExpense;
-            if (filters.status === 'paid') return expense.paid;
-            if (filters.status === 'unpaid') return !expense.paid;
-          }
-          return true;
-        });
-      }
-
-      // Filtro de range de preço
-      if (filters.priceRange.min !== null) {
-        filtered = filtered.filter((transaction) => transaction.price >= filters.priceRange.min!);
-      }
-
-      if (filters.priceRange.max !== null) {
-        filtered = filtered.filter((transaction) => transaction.price <= filters.priceRange.max!);
-      }
-
-      // Ordenação
-      filtered.sort((a, b) => {
-        let comparison = 0;
+    // Etapa de segurança 2: Ordenação de data à prova de falhas
+    items.sort((a, b) => {
+        const dateA = a.date ? new Date(a.date).getTime() : 0;
+        const dateB = b.date ? new Date(b.date).getTime() : 0;
         
-        switch (filters.sortBy) {
-          case 'date':
-            comparison = new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime();
-            break;
-          case 'price':
-            comparison = a.price - b.price;
-            break;
-          case 'name':
-            const nameA = 'clientName' in a ? a.clientName : a.name;
-            const nameB = 'clientName' in b ? b.clientName : b.name;
-            comparison = nameA.localeCompare(nameB);
-            break;
-          default:
-            comparison = 0;
+        // Se as datas forem inválidas, não tente ordenar para evitar erros
+        if (isNaN(dateA) || isNaN(dateB)) {
+            return 0;
         }
         
-        return filters.sortOrder === 'desc' ? -comparison : comparison;
-      });
+        return dateB - dateA; // Do mais recente para o mais antigo
+    });
 
-      return filtered;
-    };
-  }, [filters]);
+    return items;
+  }, [data, filters]);
 
-  const filteredRevenues = useMemo(() => 
-    filterTransactions(companyRevenues), 
-    [companyRevenues, filterTransactions]
-  );
-  
-  const filteredCompanyExpenses = useMemo(() => 
-    filterTransactions(companyExpenses), 
-    [companyExpenses, filterTransactions]
-  );
-  
-  const filteredPersonalExpenses = useMemo(() => 
-    filterTransactions(personalExpenses), 
-    [personalExpenses, filterTransactions]
-  );
-
-  return {
-    filteredRevenues,
-    filteredCompanyExpenses,
-    filteredPersonalExpenses
-  };
-};
+  return filteredData;
+}
