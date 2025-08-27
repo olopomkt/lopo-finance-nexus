@@ -1,6 +1,9 @@
 
-// Re-export dos tipos financeiros
+// Import the finance types first
 export * from './finance';
+
+// Import the specific types we need for the union
+import type { CompanyRevenue, CompanyExpense, PersonalExpense } from './finance';
 
 // Combined entry type for unified filtering
 export type CombinedEntry = CompanyRevenue | CompanyExpense | PersonalExpense;
