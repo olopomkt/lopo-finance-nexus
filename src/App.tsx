@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import { usePasswordAuth } from "@/hooks/usePasswordAuth";
 import { PasswordScreen } from "@/components/PasswordScreen";
 import { PWAInstaller } from "@/components/PWAInstaller";
+import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -29,13 +30,16 @@ const AppContent = () => {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <PWAInstaller />
-    </BrowserRouter>
+    <>
+      <ConnectionStatusIndicator />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <PWAInstaller />
+      </BrowserRouter>
+    </>
   );
 };
 
