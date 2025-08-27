@@ -16,7 +16,7 @@ export function useFilteredData({ companyRevenues, companyExpenses, personalExpe
   const { filters } = useGlobalFilters();
 
   const filteredData = useMemo(() => {
-    // Garantir que temos arrays para trabalhar
+    // Garantir que temos arrays para trabalhar (agora já vêm limpos do useFinanceData)
     const revenues = Array.isArray(companyRevenues) ? [...companyRevenues] : [];
     const compExpenses = Array.isArray(companyExpenses) ? [...companyExpenses] : [];
     const persExpenses = Array.isArray(personalExpenses) ? [...personalExpenses] : [];
@@ -80,13 +80,12 @@ export function useFilteredData({ companyRevenues, companyExpenses, personalExpe
       }
     }
 
-    // Filtragem por intervalo de datas
+    // Filtragem por intervalo de datas - agora podemos confiar que são objetos Date válidos
     if (filters.dateRange.start || filters.dateRange.end) {
       const filterByDateRange = (items: any[]) => {
         return items.filter(item => {
           if (!item.paymentDate) return false;
-          const itemDate = new Date(item.paymentDate);
-          if (!isValidDate(itemDate)) return false;
+          const itemDate = item.paymentDate; // Já é um objeto Date válido
           
           if (filters.dateRange.start && itemDate < filters.dateRange.start) return false;
           if (filters.dateRange.end && itemDate > filters.dateRange.end) return false;
@@ -115,14 +114,14 @@ export function useFilteredData({ companyRevenues, companyExpenses, personalExpe
       filteredPersonalExpenses = filterByPriceRange(filteredPersonalExpenses);
     }
 
-    // Ordenação
+    // Ordenação - agora podemos confiar que as datas são válidas
     const sortFunction = (a: any, b: any) => {
       let valueA, valueB;
 
       switch (filters.sortBy) {
         case 'date':
-          valueA = a.paymentDate ? new Date(a.paymentDate).getTime() : 0;
-          valueB = b.paymentDate ? new Date(b.paymentDate).getTime() : 0;
+          valueA = a.paymentDate ? a.paymentDate.getTime() : 0;
+          valueB = b.paymentDate ? b.paymentDate.getTime() : 0;
           break;
         case 'price':
           valueA = a.price || 0;
@@ -133,8 +132,8 @@ export function useFilteredData({ companyRevenues, companyExpenses, personalExpe
           valueB = b.name || b.clientName || '';
           break;
         default:
-          valueA = a.paymentDate ? new Date(a.paymentDate).getTime() : 0;
-          valueB = b.paymentDate ? new Date(b.paymentDate).getTime() : 0;
+          valueA = a.paymentDate ? a.paymentDate.getTime() : 0;
+          valueB = b.paymentDate ? b.paymentDate.getTime() : 0;
       }
 
       if (filters.sortOrder === 'asc') {

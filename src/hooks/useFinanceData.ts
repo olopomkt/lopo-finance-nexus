@@ -1,10 +1,77 @@
 
+import { useMemo } from 'react';
 import { useSupabaseData } from './useSupabaseData';
 import { dateTransformers } from '@/lib/dateUtils';
 import { CompanyRevenueFormData, CompanyExpenseFormData, PersonalExpenseFormData } from '@/types/finance';
 
+// Função de segurança para validar datas
+const isValidDate = (d: any): boolean => d instanceof Date && !isNaN(d.getTime());
+
 export const useFinanceData = () => {
   const supabaseHook = useSupabaseData();
+
+  // Dados saneados e combinados
+  const sanitizedData = useMemo(() => {
+    const allRevenues = Array.isArray(supabaseHook.companyRevenues) ? supabaseHook.companyRevenues : [];
+    const allCompanyExpenses = Array.isArray(supabaseHook.companyExpenses) ? supabaseHook.companyExpenses : [];  
+    const allPersonalExpenses = Array.isArray(supabaseHook.personalExpenses) ? supabaseHook.personalExpenses : [];
+
+    // Sanear receitas
+    const sanitizedRevenues = allRevenues
+      .map(item => ({
+        ...item,
+        paymentDate: item.paymentDate ? new Date(item.paymentDate) : null,
+        receivedDate: item.receivedDate ? new Date(item.receivedDate) : null
+      }))
+      .filter(item => {
+        if (item.paymentDate && isValidDate(item.paymentDate)) {
+          return true;
+        }
+        console.warn('Receita descartada por data inválida:', item);
+        return false;
+      });
+
+    // Sanear despesas empresariais
+    const sanitizedCompanyExpenses = allCompanyExpenses
+      .map(item => ({
+        ...item,
+        paymentDate: item.paymentDate ? new Date(item.paymentDate) : null,
+        paidDate: item.paidDate ? new Date(item.paidDate) : null
+      }))
+      .filter(item => {
+        if (item.paymentDate && isValidDate(item.paymentDate)) {
+          return true;
+        }
+        console.warn('Despesa empresarial descartada por data inválida:', item);
+        return false;
+      });
+
+    // Sanear despesas pessoais
+    const sanitizedPersonalExpenses = allPersonalExpenses
+      .map(item => ({
+        ...item,
+        paymentDate: item.paymentDate ? new Date(item.paymentDate) : null,
+        paidDate: item.paidDate ? new Date(item.paidDate) : null
+      }))
+      .filter(item => {
+        if (item.paymentDate && isValidDate(item.paymentDate)) {
+          return true;
+        }
+        console.warn('Despesa pessoal descartada por data inválida:', item);
+        return false;
+      });
+
+    // Ordenar cada categoria por data
+    sanitizedRevenues.sort((a, b) => b.paymentDate.getTime() - a.paymentDate.getTime());
+    sanitizedCompanyExpenses.sort((a, b) => b.paymentDate.getTime() - a.paymentDate.getTime());
+    sanitizedPersonalExpenses.sort((a, b) => b.paymentDate.getTime() - a.paymentDate.getTime());
+
+    return {
+      companyRevenues: sanitizedRevenues,
+      companyExpenses: sanitizedCompanyExpenses,
+      personalExpenses: sanitizedPersonalExpenses
+    };
+  }, [supabaseHook.companyRevenues, supabaseHook.companyExpenses, supabaseHook.personalExpenses]);
 
   // Wrapper functions que aplicam transformações de data apenas para dados de formulário
   const saveRevenue = async (data: CompanyRevenueFormData) => {
@@ -117,10 +184,10 @@ export const useFinanceData = () => {
   };
 
   return {
-    // Dados já transformados corretamente pelo useSupabaseData
-    companyRevenues: supabaseHook.companyRevenues,
-    companyExpenses: supabaseHook.companyExpenses,
-    personalExpenses: supabaseHook.personalExpenses,
+    // Dados saneados e seguros
+    companyRevenues: sanitizedData.companyRevenues,
+    companyExpenses: sanitizedData.companyExpenses,
+    personalExpenses: sanitizedData.personalExpenses,
     
     // Estados
     isLoading: supabaseHook.isLoading,
