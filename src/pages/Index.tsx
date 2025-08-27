@@ -1,165 +1,18 @@
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, BarChart3, List, Building2, User, TrendingUp } from 'lucide-react';
-import { Header } from '@/components/Header';
-import { FinancialDashboard } from '@/components/charts/FinancialDashboard';
-import { RecordsView } from '@/components/RecordsView';
-import { CompanyRevenueForm } from '@/components/forms/CompanyRevenueForm';
-import { CompanyExpenseForm } from '@/components/forms/CompanyExpenseForm';
-import { PersonalExpenseForm } from '@/components/forms/PersonalExpenseForm';
-import { CompanyRevenue, CompanyExpense, PersonalExpense } from '@/types';
-import { StarBorder } from '@/components/ui/star-border';
-import { FilterProvider } from '@/contexts/FilterContext';
-import { PWAInstaller } from '@/components/PWAInstaller';
+// src/pages/Index.tsx (Versão de Diagnóstico)
+import React from 'react';
 
-const Index = () => {
-  const [activeForm, setActiveForm] = useState<'revenue' | 'company-expense' | 'personal-expense' | null>(null);
-  const [editingRevenue, setEditingRevenue] = useState<CompanyRevenue | undefined>();
-  const [editingCompanyExpense, setEditingCompanyExpense] = useState<CompanyExpense | undefined>();
-  const [editingPersonalExpense, setEditingPersonalExpense] = useState<PersonalExpense | undefined>();
-
-  const handleCloseForm = () => {
-    setActiveForm(null);
-    setEditingRevenue(undefined);
-    setEditingCompanyExpense(undefined);
-    setEditingPersonalExpense(undefined);
-  };
-
-  const handleEditRevenue = (revenue: CompanyRevenue) => {
-    setEditingRevenue(revenue);
-    setActiveForm('revenue');
-  };
-
-  const handleEditCompanyExpense = (expense: CompanyExpense) => {
-    setEditingCompanyExpense(expense);
-    setActiveForm('company-expense');
-  };
-
-  const handleEditPersonalExpense = (expense: PersonalExpense) => {
-    setEditingPersonalExpense(expense);
-    setActiveForm('personal-expense');
-  };
-
+const IndexPage = () => {
   return (
-    <FilterProvider>
-      <div className="min-h-screen bg-gradient-to-b from-neutral-950 to-neutral-800">
-        <Header />
-        
-        <div className="container mx-auto px-4">
-          <Tabs defaultValue="dashboard" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 border-[2.5px] border-white">
-              <TabsTrigger value="dashboard" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Dashboard Financeiro
-              </TabsTrigger>
-              <TabsTrigger value="records" className="flex items-center gap-2">
-                <List className="h-4 w-4" />
-                Registros
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="dashboard" className="space-y-6 mt-6">
-              <FinancialDashboard />
-            </TabsContent>
-
-            <TabsContent value="records" className="space-y-6 mt-6">
-              {/* Botões de Ação com StarBorder */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <StarBorder as="div" className="cursor-pointer p-1" onClick={() => setActiveForm('revenue')}>
-                  <div className="flex items-center justify-center space-x-3 py-3 px-4">
-                    <TrendingUp className="h-5 w-5 text-green-600 flex-shrink-0" />
-                    <div className="text-left">
-                      <h3 className="font-semibold text-green-600 text-sm">Nova Receita</h3>
-                      <p className="text-xs text-muted-foreground">Empresarial</p>
-                    </div>
-                  </div>
-                </StarBorder>
-
-                <StarBorder as="div" className="cursor-pointer p-1" onClick={() => setActiveForm('company-expense')}>
-                  <div className="flex items-center justify-center space-x-3 py-3 px-4">
-                    <Building2 className="h-5 w-5 text-red-400 flex-shrink-0" />
-                    <div className="text-left">
-                      <h3 className="font-semibold text-red-400 text-sm">Nova Despesa</h3>
-                      <p className="text-xs text-muted-foreground">Empresarial</p>
-                    </div>
-                  </div>
-                </StarBorder>
-
-                <StarBorder as="div" className="cursor-pointer p-1" onClick={() => setActiveForm('personal-expense')}>
-                  <div className="flex items-center justify-center space-x-3 py-3 px-4">
-                    <User className="h-5 w-5 text-neon-purple flex-shrink-0" />
-                    <div className="text-left">
-                      <h3 className="font-semibold text-neon-purple text-sm">Nova Conta</h3>
-                      <p className="text-xs text-muted-foreground">Pessoal</p>
-                    </div>
-                  </div>
-                </StarBorder>
-              </div>
-
-              {/* Componente de Registros com filtros unificados */}
-              <RecordsView 
-                onEditRevenue={handleEditRevenue} 
-                onEditCompanyExpense={handleEditCompanyExpense} 
-                onEditPersonalExpense={handleEditPersonalExpense} 
-              />
-            </TabsContent>
-          </Tabs>
-
-          {/* Formulários Modais */}
-          <AnimatePresence>
-            {activeForm === 'revenue' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-                onClick={(e) => e.target === e.currentTarget && handleCloseForm()}
-              >
-                <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <CompanyRevenueForm revenue={editingRevenue} onSave={handleCloseForm} onCancel={handleCloseForm} />
-                </div>
-              </motion.div>
-            )}
-
-            {activeForm === 'company-expense' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-                onClick={(e) => e.target === e.currentTarget && handleCloseForm()}
-              >
-                <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <CompanyExpenseForm expense={editingCompanyExpense} onSave={handleCloseForm} onCancel={handleCloseForm} />
-                </div>
-              </motion.div>
-            )}
-
-            {activeForm === 'personal-expense' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-                onClick={(e) => e.target === e.currentTarget && handleCloseForm()}
-              >
-                <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                  <PersonalExpenseForm expense={editingPersonalExpense} onSave={handleCloseForm} onCancel={handleCloseForm} />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-        
-        {/* PWA Installer */}
-        <PWAInstaller />
-      </div>
-    </FilterProvider>
+    <div className="p-8">
+      <h1 className="text-3xl font-bold text-green-500">
+        Diagnóstico Iniciado: Dashboard Carregado com Sucesso.
+      </h1>
+      <p className="mt-4">
+        Se você está vendo esta mensagem, o login e a autenticação estão funcionando perfeitamente. O erro está em um dos componentes que foram removidos temporariamente.
+      </p>
+    </div>
   );
 };
 
-export default Index;
+export default IndexPage;
