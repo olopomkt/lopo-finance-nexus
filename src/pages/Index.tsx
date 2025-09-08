@@ -1,16 +1,38 @@
 
-// src/pages/Index.tsx (Versão de Diagnóstico)
-import React from 'react';
+// src/pages/Index.tsx (Versão Restaurada)
+import { useFinanceData } from "@/hooks/useFinanceData";
+import { FinancialDashboard } from "@/components/charts/FinancialDashboard";
+import { AdvancedFilterBar } from "@/components/filters/AdvancedFilterBar";
+import { RecordsView } from "@/components/RecordsView";
+import { CompanyRevenue, CompanyExpense, PersonalExpense } from "@/types";
 
 const IndexPage = () => {
+  const { combinedData, isLoading, error } = useFinanceData();
+
+  // Handlers vazios para props obrigatórias - podem ser implementados posteriormente se necessário
+  const handleEditRevenue = (revenue: CompanyRevenue) => {
+    console.log('Edit revenue:', revenue);
+  };
+
+  const handleEditCompanyExpense = (expense: CompanyExpense) => {
+    console.log('Edit company expense:', expense);
+  };
+
+  const handleEditPersonalExpense = (expense: PersonalExpense) => {
+    console.log('Edit personal expense:', expense);
+  };
+
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold text-green-500">
-        Diagnóstico Iniciado: Dashboard Carregado com Sucesso.
-      </h1>
-      <p className="mt-4">
-        Se você está vendo esta mensagem, o login e a autenticação estão funcionando perfeitamente. O erro está em um dos componentes que foram removidos temporariamente.
-      </p>
+    <div className="space-y-6">
+      <FinancialDashboard />
+      <div className="p-4 bg-card rounded-lg shadow">
+        <AdvancedFilterBar />
+        <RecordsView 
+          onEditRevenue={handleEditRevenue}
+          onEditCompanyExpense={handleEditCompanyExpense}
+          onEditPersonalExpense={handleEditPersonalExpense}
+        />
+      </div>
     </div>
   );
 };

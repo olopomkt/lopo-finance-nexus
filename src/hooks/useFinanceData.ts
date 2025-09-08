@@ -1,10 +1,10 @@
 
+// src/hooks/useFinanceData.ts (Versão Final "À Prova de Balas")
 import { useMemo } from 'react';
 import { useSupabaseData } from './useSupabaseData';
 import { CompanyRevenue, CompanyExpense, PersonalExpense, CombinedEntry } from '@/types';
 
-// Função de segurança para validar datas
-const isValidDate = (d: any): boolean => d instanceof Date && !isNaN(d.getTime());
+const isValidDate = (d: any): d is Date => d instanceof Date && !isNaN(d.getTime());
 
 export function useFinanceData() {
   const { 
@@ -29,32 +29,58 @@ export function useFinanceData() {
   } = useSupabaseData();
 
   const { combinedData, companyRevenues, companyExpenses, personalExpenses } = useMemo(() => {
-    // First sanitize individual arrays
+    console.log("Iniciando combinação e saneamento de dados...");
+    
+    // First sanitize individual arrays with enhanced validation
     const sanitizedRevenues = (rawRevenues || []).filter(item => {
-      const date = item.paymentDate ? new Date(item.paymentDate) : null;
-      if (date && isValidDate(date)) {
-        return true;
+      if (!item || typeof item !== 'object') {
+        console.error("DEBUG: Revenue item inválido (não é objeto) descartado:", item);
+        return false;
       }
-      console.warn('Revenue record discarded due to invalid date:', item);
-      return false;
+      if (item.paymentDate === null || item.paymentDate === undefined || item.price === null || item.price === undefined) {
+        console.error("DEBUG: Revenue descartado por 'paymentDate' ou 'price' nulos/indefinidos:", item);
+        return false;
+      }
+      const date = new Date(item.paymentDate);
+      if (!isValidDate(date)) {
+        console.error("DEBUG: Revenue descartado por data inválida:", item.paymentDate, item);
+        return false;
+      }
+      return true;
     });
 
     const sanitizedCompanyExpenses = (rawCompanyExpenses || []).filter(item => {
-      const date = item.paymentDate ? new Date(item.paymentDate) : null;
-      if (date && isValidDate(date)) {
-        return true;
+      if (!item || typeof item !== 'object') {
+        console.error("DEBUG: Company expense item inválido (não é objeto) descartado:", item);
+        return false;
       }
-      console.warn('Company expense record discarded due to invalid date:', item);
-      return false;
+      if (item.paymentDate === null || item.paymentDate === undefined || item.price === null || item.price === undefined) {
+        console.error("DEBUG: Company expense descartado por 'paymentDate' ou 'price' nulos/indefinidos:", item);
+        return false;
+      }
+      const date = new Date(item.paymentDate);
+      if (!isValidDate(date)) {
+        console.error("DEBUG: Company expense descartado por data inválida:", item.paymentDate, item);
+        return false;
+      }
+      return true;
     });
 
     const sanitizedPersonalExpenses = (rawPersonalExpenses || []).filter(item => {
-      const date = item.paymentDate ? new Date(item.paymentDate) : null;
-      if (date && isValidDate(date)) {
-        return true;
+      if (!item || typeof item !== 'object') {
+        console.error("DEBUG: Personal expense item inválido (não é objeto) descartado:", item);
+        return false;
       }
-      console.warn('Personal expense record discarded due to invalid date:', item);
-      return false;
+      if (item.paymentDate === null || item.paymentDate === undefined || item.price === null || item.price === undefined) {
+        console.error("DEBUG: Personal expense descartado por 'paymentDate' ou 'price' nulos/indefinidos:", item);
+        return false;
+      }
+      const date = new Date(item.paymentDate);
+      if (!isValidDate(date)) {
+        console.error("DEBUG: Personal expense descartado por data inválida:", item.paymentDate, item);
+        return false;
+      }
+      return true;
     });
 
     // Create combined entries
@@ -93,6 +119,8 @@ export function useFinanceData() {
 
     // Sort by date (newest first)
     allCombined.sort((a, b) => b.date.getTime() - a.date.getTime());
+    
+    console.log("DEBUG: Dados combinados e saneados:", allCombined.length, "registros válidos.");
 
     return {
       combinedData: allCombined,
