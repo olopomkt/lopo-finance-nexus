@@ -14,7 +14,7 @@ import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useGlobalFilters } from '@/contexts/FilterContext';
 
-export const AdvancedFilterBar = ({ className }: { className?: string }) => {
+const AdvancedFilterBar = ({ className }: { className?: string }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { filters, updateFilter, clearFilters } = useGlobalFilters();
 
@@ -281,3 +281,6 @@ export const AdvancedFilterBar = ({ className }: { className?: string }) => {
     </Card>
   );
 };
+
+export { AdvancedFilterBar };
+export default AdvancedFilterBar;

@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { StarBorder } from '@/components/ui/star-border';
 const COLORS = ['#5f5c5d', '#989596', '#adaaab'];
-export const FinancialDashboard = () => {
+const FinancialDashboard = () => {
   const {
     companyRevenues,
     companyExpenses,
@@ -313,3 +313,6 @@ export const FinancialDashboard = () => {
       </Card>
     </div>;
 };
+
+export { FinancialDashboard };
+export default FinancialDashboard;

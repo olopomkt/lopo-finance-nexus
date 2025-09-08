@@ -1,8 +1,8 @@
 
 // src/pages/Index.tsx (Versão Restaurada)
 import { useFinanceData } from "@/hooks/useFinanceData";
-import { FinancialDashboard } from "@/components/charts/FinancialDashboard";
-import { AdvancedFilterBar } from "@/components/filters/AdvancedFilterBar";
+import FinancialDashboard from "@/components/charts/FinancialDashboard";
+import AdvancedFilterBar from "@/components/filters/AdvancedFilterBar";
 import { RecordsView } from "@/components/RecordsView";
 import { CompanyRevenue, CompanyExpense, PersonalExpense } from "@/types";
 
