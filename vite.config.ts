@@ -136,12 +136,12 @@ export default defineConfig(({ mode }) => ({
           {
             name: 'Nova Receita',
             short_name: 'Receita',
-            description: 'Adicionar nova receita empresarial',
-            url: '/?action=new-revenue',
+            description: 'Registrar uma nova entrada de receita',
+            url: '/?action=add-revenue',
             icons: [
               {
                 src: '/pwa-icons/shortcut-revenue.png',
-                sizes: '96x96',
+                sizes: '192x192',
                 type: 'image/png'
               }
             ]
@@ -149,12 +149,12 @@ export default defineConfig(({ mode }) => ({
           {
             name: 'Nova Despesa',
             short_name: 'Despesa',
-            description: 'Adicionar nova despesa',
-            url: '/?action=new-expense',
+            description: 'Registrar uma nova saída de despesa',
+            url: '/?action=add-expense',
             icons: [
               {
                 src: '/pwa-icons/shortcut-expense.png',
-                sizes: '96x96',
+                sizes: '192x192',
                 type: 'image/png'
               }
             ]
