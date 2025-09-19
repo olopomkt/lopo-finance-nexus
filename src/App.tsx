@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
+import { FilterProvider } from "@/contexts/FilterContext";
 import { usePasswordAuth } from "@/hooks/usePasswordAuth";
 import { PasswordScreen } from "@/components/PasswordScreen";
 import { PWAInstaller } from "@/components/PWAInstaller";
@@ -30,7 +31,7 @@ const AppContent = () => {
   }
 
   return (
-    <>
+    <FilterProvider>
       <ConnectionStatusIndicator />
       <BrowserRouter>
         <Routes>
@@ -39,7 +40,7 @@ const AppContent = () => {
         </Routes>
         <PWAInstaller />
       </BrowserRouter>
-    </>
+    </FilterProvider>
   );
 };
 
