@@ -1,5 +1,4 @@
 
-import { AdvancedFilterBar } from '@/components/filters/AdvancedFilterBar';
 import { RevenueList } from '@/components/lists/RevenueList';
 import { CompanyExpenseList } from '@/components/lists/CompanyExpenseList';
 import { PersonalExpenseList } from '@/components/lists/PersonalExpenseList';
@@ -33,12 +32,9 @@ export const RecordsView = ({
   // Show loading state
   if (isLoading && companyRevenues.length === 0 && companyExpenses.length === 0 && personalExpenses.length === 0) {
     return (
-      <div className="space-y-6">
-        <AdvancedFilterBar />
-        <div className="flex items-center justify-center py-12">
-          <LoadingSpinner />
-          <span className="ml-2 text-muted-foreground">Carregando dados...</span>
-        </div>
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner />
+        <span className="ml-2 text-muted-foreground">Carregando dados...</span>
       </div>
     );
   }
@@ -83,9 +79,6 @@ export const RecordsView = ({
         </div>
       </div>
 
-      {/* Filtro Unificado - UM ÚNICO para todas as categorias */}
-      <AdvancedFilterBar />
-      
       {/* Tabs para separar as categorias */}
       <Tabs defaultValue="revenues" className="w-full">
         <TabsList className="grid w-full grid-cols-3 border-[2.5px] border-white">
